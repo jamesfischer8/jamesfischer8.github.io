@@ -1,3 +1,5 @@
+title: "James Fischer"
+description: ""
 plugins:
-  - jekyll-feed
+  - jekyll-seo-tag
 
