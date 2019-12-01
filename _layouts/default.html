@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html>
   {%- include head.html -%}
-  <body>
-    {{ content }}
+  <body style="margin: 0;">
+    <div class="cover-wrapper">
+      <video autoplay loop muted class="cover">
+        <source src="/assets/video/bridge.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div style="margin: 10vh 20vw;">
+      {{ content }}
+    </div>
   </body>
 </html>
-
