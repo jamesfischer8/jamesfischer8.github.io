@@ -1,7 +1,6 @@
 ---
 layout: default
 ---
-# James Fischer
 
 [contact@jamesfischer.dev](mailto:contact@jamesfischer.dev)
 
