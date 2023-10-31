@@ -4,7 +4,7 @@ layout: default
 
 [contact@jamesfischer.dev](mailto:contact@jamesfischer.dev)
 
-[LinkedIn](https://www.linkedin.com/in/james-a-fischer/)
+[LinkedIn](https://www.linkedin.com/in/jamesfischer-dev/)
 
 [GitHub](https://github.com/jamesfischer8)
 
