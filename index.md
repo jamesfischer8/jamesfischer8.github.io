@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: traffic
 ---
 
 [contact@jamesfischer.dev](mailto:contact@jamesfischer.dev)
