@@ -8,5 +8,5 @@ layout: default
 
 [GitHub](https://github.com/jamesfischer8)
 
-[Twitter](https://twitter.com/jamesfischer)
+[Twitter](https://x.com/jamesfischer)
 
