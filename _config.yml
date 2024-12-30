@@ -1,9 +1,15 @@
 title: "James Fischer"
 description: "I'm a software engineer in San Francisco."
-url: "https://www.jamesfischer.dev/"
+url: "https://www.jamesfischer.dev"
 twitter:
   username: jamesfischer
   card: summary
+social:
+  links:
+    - "https://www.linkedin.com/in/jamesfischer-dev"
+    - "https://github.com/jamesfischer8"
+    - "https://x.com/jamesfischer"
+    - "https://www.facebook.com/jamesfischer"
 plugins:
   - jekyll-seo-tag
 
