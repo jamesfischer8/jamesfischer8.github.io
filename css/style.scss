@@ -2,8 +2,13 @@
 ---
 
 body {
-  font-family: sans-serif;
+  font-family: "PT Serif", Georgia, 'Times New Roman', serif;
+  font-display: optional;
   margin: 8px;
+}
+
+a, a:visited {
+    color: inherit;
 }
 
 .cover-wrapper {
