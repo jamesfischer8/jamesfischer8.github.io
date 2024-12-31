@@ -10,3 +10,5 @@ layout: traffic
 
 [Twitter](https://x.com/jamesfischer)
 
+[Blog]({{ site.posts.first.url }})
+
