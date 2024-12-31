@@ -6,14 +6,14 @@
     <loc>{{ site.url }}</loc>
   </url>
   <url>
-    <loc>{{ site.url }}/about</loc>
+    <loc>{{ "/about" | absolute_url }}</loc>
   </url>
   <url>
-    <loc>{{ site.url }}/posts</loc>
+    <loc>{{ "/posts" | absolute_url }}</loc>
   </url>
   {% for post in site.posts %}
   <url>
-    <loc>{{ site.url }}{{ post.url }}</loc>
+    <loc>{{ post.url | absolute_url }}</loc>
   </url>
   {% endfor %}
 </urlset>
