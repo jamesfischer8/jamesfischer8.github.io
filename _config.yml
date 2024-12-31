@@ -12,4 +12,5 @@ social:
     - "https://www.facebook.com/jamesfischer"
 plugins:
   - jekyll-seo-tag
+permalink: /:categories/:title
 

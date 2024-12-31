@@ -8,4 +8,12 @@
   <url>
     <loc>{{ site.url }}/about</loc>
   </url>
+  <url>
+    <loc>{{ site.url }}/posts</loc>
+  </url>
+  {% for post in site.posts %}
+  <url>
+    <loc>{{ site.url }}{{ post.url }}</loc>
+  </url>
+  {% endfor %}
 </urlset>
