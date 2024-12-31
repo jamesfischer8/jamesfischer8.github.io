@@ -5,6 +5,7 @@ layout: base
   <div class="main-column">
     <article>
       <h1 class="title">{{ page.title }}</h1>
+      <div class="date">{{ page.date | date_to_string: "ordinal", "US" }}</div>
       <a class="author" rel="author" href="{{ site.url }}">James Fischer</a>
       {{ content }}
     </article>
