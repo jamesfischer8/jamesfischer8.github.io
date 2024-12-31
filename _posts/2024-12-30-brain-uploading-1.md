@@ -21,9 +21,9 @@ Under lowered inertia, blood responds too quickly to cardiac impulse.
 Heartbeats become erratic. Blood sloshes through the veins. Critical organs,
 including the brain, lose blood flow.
 
-The altered physics has by now thrown any neurons still alive into chaos.
-Cascading misfires lock up the nervous system, preventing any voluntary or
-involuntary muscle movement. Waning brain activity crackles offline.
+The altered physics throws any neurons still alive into chaos. Cascading
+misfires lock up the nervous system, preventing any voluntary or involuntary
+muscle movement. Waning brain activity crackles offline.
 
 After death, tissues break down quickly. Before organs can decay individually
 at their own rates, cellular barriers fail more uniformly. Except for bone,
