@@ -1,6 +1,10 @@
 ---
 ---
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: "PT Serif", Georgia, "Times New Roman", serif;
   font-display: optional;
@@ -70,4 +74,43 @@ a, a:visited {
   margin: 72px 16px;
   border-left: 1px solid black;
   padding: 16px 0;
+}
+
+.guestbook {
+  form {
+    margin-bottom: 40px;
+  }
+
+  form > div {
+    margin: 0.5rem 0;
+  }
+
+  input, textarea {
+    width: 100%;
+    border: 1px solid #ccc;
+    padding: 0.5em;
+    font-size: 1rem;
+  }
+
+  textarea {
+    height: 4rem;
+    resize: none;
+  }
+
+  .entry {
+    margin: 24px 0;
+  }
+
+  .name-timestamp {
+    display: flex;
+    flex-direction: row;
+
+    .name {
+      flex: 1 0 auto;
+    }
+  }
+
+  .remarks {
+    color: #666;
+  }
 }

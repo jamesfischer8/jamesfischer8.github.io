@@ -1,0 +1,25 @@
+name = "jamesfischer8-github-io"
+pages_build_output_dir = "_site"
+compatibility_date = "2024-08-07"
+
+[env.production.vars]
+LANG = "en_US.UTF-8"
+LANGUAGE = "en_US.UTF-8"
+LC_ALL = "C.UTF-8"
+
+[env.preview.vars]
+LANG = "en_US.UTF-8"
+LANGUAGE = "en_US.UTF-8"
+LC_ALL = "C.UTF-8"
+
+[[kv_namespaces]]
+id = "GUESTBOOK"
+binding = "GUESTBOOK"
+
+[[env.production.kv_namespaces]]
+id = "c6d5c5d4639c4a5f96c3ee8bb6cc1446"
+binding = "GUESTBOOK"
+
+[[env.preview.kv_namespaces]]
+id = "b58fd3545aeb498d97989904bf3ebe8d"
+binding = "GUESTBOOK"
