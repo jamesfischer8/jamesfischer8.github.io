@@ -30,3 +30,5 @@ which retains its structure for now, tissues homogenize into a loose collection
 of indistinct cellular material.
 
 So it's not hard to understand why we had to abandon our bodies.
+
+[Next](/fiction/brain-uploading-2)
