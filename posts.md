@@ -3,12 +3,10 @@ layout: default
 ---
 
 # Posts
+[James Fischer]({{ site.url }})
 
 {% for post in site.posts %}
 ### [{{ post.title }}]({{ post.url }})
-
-[James Fischer]({{ site.url }})
-
 {{ post.excerpt }}
 {% endfor %}
 
