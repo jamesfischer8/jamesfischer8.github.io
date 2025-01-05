@@ -23,7 +23,7 @@ export async function onRequestPost({ request, env }) {
     const date = new Date();
 
     // Basic validation
-    if (!entry.name || !entry.remarks) {
+    if (!entry.name) {
       return new Response('Missing required fields', { status: 400 });
     }
 
