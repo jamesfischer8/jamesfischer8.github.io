@@ -46,9 +46,9 @@ document.getElementById('guestbook-form').addEventListener('submit', async (e) =
       throw new Error('Failed to submit entry');
     }
 
-    // Clear form and refresh entries
+    // Clear form and add new entry to page
     e.target.reset();
-    loadEntries();
+    prependEntry({ timestamp: new Date().toISOString(), ...data });
   } catch (error) {
     document.getElementById('error-message').textContent = error.message;
     document.getElementById('error-message').style.display = 'block';
@@ -61,19 +61,29 @@ async function loadEntries() {
     const response = await fetch('/api/guestbook');
     const entries = await response.json();
 
-    const entriesDiv = document.getElementById('entries');
-    entriesDiv.innerHTML = entries.reverse().map(entry => `
-<div class="entry">
-  <div class="name-timestamp">
-    <div class="name">${escapeHtml(entry.name)}</div>
-    <div class="timestamp">${new Date(entry.timestamp).toLocaleDateString()}</div>
-  </div>
-  <p class="remarks">${escapeHtml(entry.remarks)}</p>
-</div>
-`).join('');
+    entries.forEach(entry => {
+      prependEntry(entry);
+    });
   } catch (error) {
     console.error('Failed to load entries:', error);
   }
+}
+
+function prependEntry(entry) {
+  const entriesDiv = document.getElementById('entries');
+  entriesDiv.innerHTML = entryHtml(entry) + "\n" + entriesDiv.innerHTML;
+}
+
+function entryHtml(entry) {
+  return `
+<div class="entry">
+<div class="name-timestamp">
+<div class="name">${escapeHtml(entry.name)}</div>
+<div class="timestamp">${new Date(entry.timestamp).toLocaleDateString()}</div>
+</div>
+<p class="remarks">${escapeHtml(entry.remarks)}</p>
+</div>
+`;
 }
 
 // Helper function to escape HTML
