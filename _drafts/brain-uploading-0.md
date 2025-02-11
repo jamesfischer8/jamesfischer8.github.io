@@ -1,7 +1,7 @@
 ---
 title: Brain Uploading &mdash; Part I
 category: fiction
-slug: brain-uploading-1
+slug: brain-uploading-0
 ---
 
 We broke inertia's hold, but our bodies still craved the old chains.
