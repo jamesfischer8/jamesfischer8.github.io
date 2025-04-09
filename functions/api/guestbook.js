@@ -34,11 +34,15 @@ export async function onRequestPost({ request, env }) {
     // Generate a unique key for the entry
     const key = `entry-${date.getTime()}-${Math.random().toString(36).substr(2, 9)}`;
 
+    // Get request ip
+    const ip = request.headers.get('CF-Connecting-IP') || null;
+
     // Store the entry in KV
     const newEntry = {
       name: entry.name,
       remarks: entry.remarks,
       timestamp: date.toISOString(),
+      ip,
     };
     await env.GUESTBOOK.put(key, JSON.stringify(newEntry));
 
