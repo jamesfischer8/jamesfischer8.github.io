@@ -11,5 +11,6 @@ lines:
 
 ## Branching Guidelines
 
-- Switch to a new git branch if on master before committing.
+- Switch to a new git branch before working on even moderately complex tasks,
+  and commit in logical increments as you progress.
 - Don't merge branches into master unless specifically directed.
