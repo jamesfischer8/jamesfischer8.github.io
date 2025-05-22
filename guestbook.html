@@ -59,6 +59,18 @@ document.getElementById('guestbook-form').addEventListener('submit', async (e) =
     document.getElementById('error-message').style.display = 'block';
   }
 });
+// Submit form on Ctrl+Enter (Windows) or Command+Enter (Mac)
+const formEl = document.getElementById('guestbook-form');
+formEl.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault();
+    if (typeof formEl.requestSubmit === 'function') {
+      formEl.requestSubmit();
+    } else {
+      formEl.submit();
+    }
+  }
+});
 
 // Load existing entries
 async function loadEntries() {
