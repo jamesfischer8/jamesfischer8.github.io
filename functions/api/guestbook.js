@@ -1,5 +1,6 @@
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ request, env }) {
   try {
+    const ip = request.headers.get('CF-Connecting-IP') || null;
     const listResponse = await env.GUESTBOOK.list();
 
     // Fetch all entries in parallel
@@ -13,7 +14,11 @@ export async function onRequestGet({ env }) {
     // Filter out any null entries and remove IP before sending to client
     const publicEntries = entries
       .filter(Boolean)
-      .map(({ name, remarks, timestamp }) => ({ name, remarks, timestamp }));
+      .map(entry => {
+        const { name, remarks, timestamp, ip: entryIp } = entry;
+        const ipMatch = ip === entryIp;
+        return { name, remarks, timestamp, ipMatch };
+      });
     return Response.json(publicEntries);
   } catch (error) {
     return Response.json({ error: 'Failed to fetch entries' }, { status: 500 });
