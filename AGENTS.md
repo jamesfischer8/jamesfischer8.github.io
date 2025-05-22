@@ -8,3 +8,8 @@ lines:
 - Use sentence casing (capitalize only the first word and proper nouns).
 - Avoid scope prefixes (e.g., omit things like "feat(...):").
 - Keep it concise (ideally under 50 characters).
+
+## Branching Guidelines
+
+- Switch to a new git branch if on master before committing.
+- Don't merge branches into master unless specifically directed.
