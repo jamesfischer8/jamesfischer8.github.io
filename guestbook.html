@@ -46,9 +46,10 @@ document.getElementById('guestbook-form').addEventListener('submit', async (e) =
       throw new Error('Failed to submit entry');
     }
 
-    // Clear form and add new entry to page
+    // Clear form and add new entry to page using server timestamp
+    const newEntry = await response.json();
     e.target.reset();
-    prependEntry({ timestamp: new Date().toISOString(), ...data });
+    prependEntry(newEntry);
   } catch (error) {
     document.getElementById('error-message').textContent = error.message;
     document.getElementById('error-message').style.display = 'block';

@@ -46,11 +46,14 @@ export async function onRequestPost({ request, env }) {
     };
     await env.GUESTBOOK.put(key, JSON.stringify(newEntry));
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    return new Response(
+      JSON.stringify(newEntry),
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   } catch (error) {
     return new Response('Internal Server Error', { status: 500 });
   }
