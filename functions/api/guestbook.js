@@ -10,8 +10,11 @@ export async function onRequestGet({ env }) {
       })
     );
 
-    // Filter out any null entries
-    return Response.json(entries.filter(Boolean));
+    // Filter out any null entries and remove IP before sending to client
+    const publicEntries = entries
+      .filter(Boolean)
+      .map(({ name, remarks, timestamp }) => ({ name, remarks, timestamp }));
+    return Response.json(publicEntries);
   } catch (error) {
     return Response.json({ error: 'Failed to fetch entries' }, { status: 500 });
   }
@@ -46,8 +49,14 @@ export async function onRequestPost({ request, env }) {
     };
     await env.GUESTBOOK.put(key, JSON.stringify(newEntry));
 
+    // Return only public fields (exclude IP) to the client
+    const publicEntry = {
+      name: newEntry.name,
+      remarks: newEntry.remarks,
+      timestamp: newEntry.timestamp,
+    };
     return new Response(
-      JSON.stringify(newEntry),
+      JSON.stringify(publicEntry),
       {
         headers: {
           'Content-Type': 'application/json',
