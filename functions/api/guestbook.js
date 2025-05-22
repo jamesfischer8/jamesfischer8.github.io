@@ -4,9 +4,9 @@ export async function onRequestGet({ env }) {
 
     // Fetch all entries in parallel
     const entries = await Promise.all(
-      listResponse.keys.map(async ({ name }) => {
-        const entry = await env.GUESTBOOK.get(name);
-        return entry ? JSON.parse(entry) : null;
+      listResponse.keys.map(async ({ name: key }) => {
+        const raw = await env.GUESTBOOK.get(key);
+        return raw ? JSON.parse(raw) : null;
       })
     );
 
@@ -17,6 +17,35 @@ export async function onRequestGet({ env }) {
     return Response.json(publicEntries);
   } catch (error) {
     return Response.json({ error: 'Failed to fetch entries' }, { status: 500 });
+  }
+}
+
+// Allow guests to delete their own recent entries if IP matches
+export async function onRequestDelete({ request, env }) {
+  try {
+    const { key } = await request.json();
+    if (!key) {
+      return new Response('Missing entry key', { status: 400 });
+    }
+
+    const raw = await env.GUESTBOOK.get(key);
+    if (!raw) {
+      return new Response('Entry not found', { status: 404 });
+    }
+    const entry = JSON.parse(raw);
+
+
+    const ip = request.headers.get('CF-Connecting-IP') || null;
+    if (ip !== entry.ip) {
+      return new Response('IP mismatch', { status: 403 });
+    }
+
+    await env.GUESTBOOK.delete(key);
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    return new Response('Internal Server Error', { status: 500 });
   }
 }
 
@@ -51,6 +80,7 @@ export async function onRequestPost({ request, env }) {
 
     // Return only public fields (exclude IP) to the client
     const publicEntry = {
+      key,
       name: newEntry.name,
       remarks: newEntry.remarks,
       timestamp: newEntry.timestamp,

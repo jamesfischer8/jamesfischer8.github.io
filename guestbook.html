@@ -23,6 +23,7 @@ layout: default
 </div>
 
 <script>
+// Client-side flag for deleting own entries
 // Simple client-side validation and submission
 document.getElementById('guestbook-form').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -46,8 +47,11 @@ document.getElementById('guestbook-form').addEventListener('submit', async (e) =
       throw new Error('Failed to submit entry');
     }
 
-    // Clear form and add new entry to page using server timestamp
+    // Clear form, store deletion flag, and add new entry using server-provided data
     const newEntry = await response.json();
+    // Record ownership: map fingerprint to deletion key
+    const pf = JSON.stringify([newEntry.timestamp, newEntry.name, newEntry.remarks]);
+    localStorage.setItem(`guestbook-${pf}`, newEntry.key);
     e.target.reset();
     prependEntry(newEntry);
   } catch (error) {
@@ -76,13 +80,19 @@ function prependEntry(entry) {
 }
 
 function entryHtml(entry) {
+  const ts = new Date(entry.timestamp);
+  const pf = JSON.stringify([entry.timestamp, entry.name, entry.remarks]);
+  const encodedPf = encodeURIComponent(pf);
+  const key = localStorage.getItem(`guestbook-${pf}`);
+  const canDelete = !!key;
   return `
-<div class="entry">
-<div class="name-timestamp">
-<div class="name">${escapeHtml(entry.name)}</div>
-<div class="timestamp">${new Date(entry.timestamp).toLocaleDateString()}</div>
-</div>
-<p class="remarks">${escapeHtml(entry.remarks)}</p>
+<div class="entry" data-key="${key || ''}" data-pf="${encodedPf}">
+  <div class="name-timestamp">
+    <div class="name">${escapeHtml(entry.name)}</div>
+    <div class="timestamp">${ts.toLocaleDateString()}</div>
+  </div>
+  <p class="remarks">${escapeHtml(entry.remarks)}</p>
+  ${canDelete ? `<button class="delete">Delete</button>` : ''}
 </div>
 `;
 }
@@ -99,4 +109,29 @@ function escapeHtml(unsafe) {
 
 // Load entries on page load
 loadEntries();
+
+// Handle delete button clicks
+document.getElementById('entries').addEventListener('click', async (e) => {
+  if (!e.target.classList.contains('delete')) return;
+  const entryDiv = e.target.closest('.entry');
+  const key = entryDiv.getAttribute('data-key');
+  if (!key) return;
+  // Retrieve original fingerprint to clear localStorage
+  const pfEncoded = entryDiv.getAttribute('data-pf');
+  const pf = decodeURIComponent(pfEncoded);
+  if (!confirm('Are you sure you want to delete your entry?')) return;
+  try {
+    const response = await fetch('/api/guestbook', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key }),
+    });
+    if (!response.ok) throw new Error('Delete failed');
+    entryDiv.remove();
+    localStorage.removeItem(`guestbook-${pf}`);
+  } catch (err) {
+    console.error(err);
+    alert('Could not delete entry.');
+  }
+});
 </script>
