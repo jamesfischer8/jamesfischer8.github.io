@@ -194,7 +194,7 @@ title: The Garden
 <div id="game">
   <div id="sidebar">
     <div id="stats">
-      Money: $<span id="money">0</span> <br>
+      Money: <span id="money">$0</span> <br>
       Seeds: <span id="seeds">1</span> <br>
       Pots: <span id="pot-count">1</span> <br>
       <span id="seeds-per-sec-line" style="display: none;">Seeds/sec: <span id="seed-buyer-count">0</span> <br></span>
@@ -374,7 +374,7 @@ title: The Garden
     function updateMoney(value) {
       if (uiState.money !== value) {
         uiState.money = value;
-        moneyEl.textContent = formatMoney(value);
+        moneyEl.textContent = value < 0 ? '-$' + formatMoney(Math.abs(value)) : '$' + formatMoney(value);
       }
     }
 
