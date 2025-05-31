@@ -1,0 +1,624 @@
+---
+layout: base
+title: The Garden
+---
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<style>
+  /* Earthy mystical theme */
+  body {
+    background: linear-gradient(135deg, #2c2416 0%, #3d3426 50%, #2c2416 100%);
+    color: #d4c4a0;
+    font-family: 'Crimson Text', 'Times New Roman', serif;
+    min-height: 100vh;
+  }
+  #game {
+    margin-top: 50px;
+    padding: 25px;
+    background: #1a1611;
+    border: 3px solid #4a3f2a;
+    border-radius: 8px;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    gap: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 3px rgba(74, 63, 42, 0.3);
+  }
+  #sidebar {
+    flex: 0 0 250px;
+    background: #252019;
+    border: 2px solid #5a4d35;
+    border-radius: 6px;
+    padding: 18px;
+    height: fit-content;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+  }
+  #main-area {
+    flex: 1;
+    text-align: center;
+  }
+  #stats {
+    margin-bottom: 20px;
+    font-size: 18px;
+    text-align: left;
+  }
+  #inventory {
+    margin-bottom: 20px;
+  }
+  #inventory h3 {
+    margin: 0 0 12px 0;
+    color: #c49b61;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+  button {
+    font-size: 16px;
+    padding: 10px 18px;
+    margin: 4px;
+    border: 2px solid #6b5639;
+    border-radius: 4px;
+    background: linear-gradient(145deg, #3a2f1e, #2d241a);
+    color: #c49b61;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Crimson Text', serif;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(196, 155, 97, 0.1);
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  button span {
+    pointer-events: none;
+    display: block;
+  }
+  button:disabled {
+    border-color: #3a322a;
+    color: #4a4137;
+    cursor: not-allowed;
+    background: #1f1a15;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  }
+  button:hover:not(:disabled) {
+    background: linear-gradient(145deg, #4a3d28, #3d3220);
+    border-color: #8a7352;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(196, 155, 97, 0.2);
+  }
+  #pots-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+  }
+  .pot {
+    border: 2px solid #5a4d35;
+    border-radius: 6px;
+    padding: 18px;
+    background: linear-gradient(135deg, #2a2318, #1f1c14);
+    min-width: 220px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(90, 77, 53, 0.2);
+  }
+  .pot h3 {
+    margin: 0 0 12px 0;
+    font-size: 17px;
+    color: #b8956f;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    line-height: 24px;
+  }
+  .pot progress {
+    width: calc(100% - 8px);
+    margin: 12px 4px;
+    height: 8px;
+    border-radius: 4px;
+    background: #1a1611;
+    border: 1px solid #4a3f2a;
+    box-sizing: border-box;
+  }
+  .pot progress::-webkit-progress-bar {
+    background: #1a1611;
+    border-radius: 4px;
+  }
+  .pot progress::-webkit-progress-value {
+    background: linear-gradient(90deg, #4a6b2a, #5a7b35);
+    border-radius: 4px;
+  }
+  .pot.harvesting progress::-webkit-progress-value {
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .pot button {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+  .pot-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .pot-actions button {
+    flex: 1;
+  }
+  .plant-visual {
+    font-size: 16px;
+    opacity: 0.8;
+    margin-left: 6px;
+    display: inline-block;
+    width: 18px;
+    text-align: center;
+  }
+  #controls {
+    border-top: 1px solid #88b04b;
+    padding-top: 15px;
+  }
+  #controls button {
+    display: block;
+    width: 100%;
+    margin: 5px 0;
+  }
+  @media (max-width: 768px) {
+    #game {
+      flex-direction: column;
+    }
+    #sidebar {
+      flex: none;
+    }
+    #stats {
+      text-align: center;
+    }
+  }
+</style>
+
+<h1 style="text-align:center; color: #88b04b; font-size: 28px; margin-bottom: 30px; font-weight: 700; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);">The Garden</h1>
+<div id="game">
+  <div id="sidebar">
+    <div id="stats">
+      Money: $<span id="money">0</span> <br>
+      Seeds: <span id="seeds">1</span> <br>
+      Pots: <span id="pot-count">1</span>
+    </div>
+
+    <div id="inventory">
+      <h3>Shop</h3>
+      <div id="controls">
+        <button id="buy-seed" disabled>Buy seed ($1)</button>
+        <button id="buy-pot" disabled>Buy pot ($100)</button>
+        <button id="buy-auto-planter" disabled>Auto-Planter ($0)</button>
+        <button id="buy-auto-harvester" disabled>Auto-Harvester ($0)</button>
+        <button id="buy-auto-seeder" disabled style="display: none;">Seed Buyer ($0)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="main-area">
+    <div id="pots-container"></div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    var moneyEl = document.getElementById('money');
+    var seedsEl = document.getElementById('seeds');
+    var potCountEl = document.getElementById('pot-count');
+    var buySeedBtn = document.getElementById('buy-seed');
+    var buyPotBtn = document.getElementById('buy-pot');
+    var buyAutoHarvesterBtn = document.getElementById('buy-auto-harvester');
+    var buyAutoPlanterBtn = document.getElementById('buy-auto-planter');
+    var buyAutoSeederBtn = document.getElementById('buy-auto-seeder');
+    var potsContainer = document.getElementById('pots-container');
+
+    // Game state
+    var seeds = 1;
+    var money = 0;
+    var pots = [
+      {
+        id: 0,
+        planted: false,
+        growth: 0,
+        plantTime: null
+      }
+    ];
+
+    // Check for fast testing mode
+    var urlParams = new URLSearchParams(window.location.search);
+    var isFastMode = urlParams.has('fast');
+    var growthDuration = isFastMode ? 2250 : 15000; // 15% of normal time when fast=true
+    var salePrice = 50;
+    var seedCost = 1;
+    var potCost = 100;
+    var autoHarvesterCost = 1000;
+    var autoPlanterCost = 200;
+    var autoSeederCost = 10000;
+    var hasAutoHarvester = false;
+    var hasAutoPlanter = false;
+    var hasAutoSeeder = false;
+
+    // UI state tracking
+    var uiState = {
+      money: -1, // Initialize to -1 to force first update
+      seeds: -1,
+      potCount: -1,
+      seedBtnText: '',
+      potBtnText: '',
+      autoHarvesterBtnText: '',
+      autoPlanterBtnText: '',
+      autoSeederBtnText: '',
+      seedBtnDisabled: null,
+      potBtnDisabled: null,
+      autoHarvesterBtnDisabled: null,
+      autoPlanterBtnDisabled: null,
+      autoSeederBtnDisabled: null,
+      pots: {} // Track pot UI states
+    };
+
+    function createPotElement(pot) {
+      var potDiv = document.createElement('div');
+      potDiv.className = 'pot';
+
+      var plantButton = hasAutoPlanter ? '' : `<button class="plant-btn" data-pot="${pot.id}">Plant seed</button>`;
+      var harvestButton = hasAutoHarvester ? '' : `<button class="harvest-btn" data-pot="${pot.id}" disabled>Harvest ($${formatMoney(salePrice)})</button>`;
+
+      potDiv.innerHTML = `
+        <h3>Pot ${pot.id + 1} <span class="plant-visual" data-pot="${pot.id}"></span></h3>
+        <progress class="growth-bar" max="100" value="0"></progress>
+        <div class="pot-actions">
+          ${plantButton}
+          ${harvestButton}
+        </div>
+      `;
+      return potDiv;
+    }
+
+    function renderPots() {
+      potsContainer.innerHTML = '';
+      // Reset pot UI state since we're re-rendering with new DOM elements
+      uiState.pots = {};
+
+      pots.forEach(function(pot) {
+        potsContainer.appendChild(createPotElement(pot));
+      });
+
+      // Add event listeners to new buttons
+      document.querySelectorAll('.plant-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var potId = parseInt(this.dataset.pot);
+          plantSeed(potId);
+        });
+      });
+
+      document.querySelectorAll('.harvest-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var potId = parseInt(this.dataset.pot);
+          harvestFlower(potId);
+        });
+      });
+
+
+    }
+
+
+    function plantSeed(potId) {
+      var pot = pots[potId];
+      if (seeds > 0 && !pot.planted) {
+        seeds--;
+        pot.growth = 0;
+        pot.planted = true;
+        pot.plantTime = Date.now();
+        update();
+      }
+    }
+
+    function harvestFlower(potId) {
+      var pot = pots[potId];
+      if (pot.growth >= 100 && pot.planted) {
+        // Add harvesting class for bouncy animation
+        var potElement = document.querySelector(`[data-pot="${potId}"]`).closest('.pot');
+        potElement.classList.add('harvesting');
+
+        pot.planted = false;
+        pot.growth = 0;
+        money += salePrice;
+        update();
+        updateControls();
+
+        // Remove harvesting class after animation completes
+        setTimeout(function() {
+          potElement.classList.remove('harvesting');
+        }, 500);
+      }
+    }
+
+    // Format numbers with commas
+    function formatMoney(amount) {
+      return amount.toLocaleString();
+    }
+
+    // Update functions that only modify DOM when values change
+    function updateMoney(value) {
+      if (uiState.money !== value) {
+        uiState.money = value;
+        moneyEl.textContent = formatMoney(value);
+      }
+    }
+
+    function updateSeeds(value) {
+      if (uiState.seeds !== value) {
+        uiState.seeds = value;
+        seedsEl.textContent = value;
+      }
+    }
+
+    function updatePotCount(value) {
+      if (uiState.potCount !== value) {
+        uiState.potCount = value;
+        potCountEl.textContent = value;
+      }
+    }
+
+    function updateButtonState(button, text, disabled, stateKey) {
+      var textKey = stateKey + 'Text';
+      var disabledKey = stateKey + 'Disabled';
+
+      if (uiState[textKey] !== text) {
+        uiState[textKey] = text;
+        button.innerHTML = text;
+      }
+
+      if (uiState[disabledKey] !== disabled) {
+        uiState[disabledKey] = disabled;
+        button.disabled = disabled;
+      }
+    }
+
+    function update() {
+      updateMoney(money);
+      updateSeeds(seeds);
+      updatePotCount(pots.length);
+
+      // Update each pot's display
+      pots.forEach(function(pot) {
+        var plantBtn = document.querySelector(`[data-pot="${pot.id}"].plant-btn`);
+        var harvestBtn = document.querySelector(`[data-pot="${pot.id}"].harvest-btn`);
+        var plantVisual = document.querySelector(`.plant-visual[data-pot="${pot.id}"]`);
+        var growthBar = plantVisual ? plantVisual.closest('.pot').querySelector('.growth-bar') : null;
+
+        if (growthBar && plantVisual) {
+          // Initialize pot state if needed
+          if (!uiState.pots[pot.id]) {
+            uiState.pots[pot.id] = {
+              plantBtnDisabled: null,
+              harvestBtnDisabled: null,
+              growth: -1,
+              visual: ''
+            };
+          }
+
+          var potState = uiState.pots[pot.id];
+
+          // Update plant button state (if button exists)
+          if (plantBtn) {
+            var plantBtnShouldBeDisabled = pot.planted || seeds <= 0;
+            if (potState.plantBtnDisabled !== plantBtnShouldBeDisabled) {
+              potState.plantBtnDisabled = plantBtnShouldBeDisabled;
+              plantBtn.disabled = plantBtnShouldBeDisabled;
+            }
+          }
+
+          // Update harvest button state (if button exists)
+          if (harvestBtn) {
+            var harvestBtnShouldBeDisabled = pot.growth < 100;
+            if (potState.harvestBtnDisabled !== harvestBtnShouldBeDisabled) {
+              potState.harvestBtnDisabled = harvestBtnShouldBeDisabled;
+              harvestBtn.disabled = harvestBtnShouldBeDisabled;
+            }
+          }
+
+          // Update growth bar
+          if (potState.growth !== pot.growth) {
+            potState.growth = pot.growth;
+            growthBar.value = pot.growth;
+          }
+
+          // Update visual state
+          var newVisual;
+          if (!pot.planted) {
+            newVisual = ''; // Empty pot
+          } else if (pot.growth >= 90) {
+            newVisual = '🌹'; // Nearly ready to harvest
+          } else if (pot.growth >= 50) {
+            newVisual = '🌿'; // Growing nicely
+          } else {
+            newVisual = '🌱'; // Just planted
+          }
+
+          if (potState.visual !== newVisual) {
+            potState.visual = newVisual;
+            plantVisual.textContent = newVisual;
+          }
+        }
+      });
+    }
+
+    function updateControls() {
+      updateButtonState(
+        buySeedBtn,
+        '<span>Buy seed ($' + formatMoney(seedCost) + ')</span>',
+        money < seedCost,
+        'seedBtn'
+      );
+
+      updateButtonState(
+        buyPotBtn,
+        '<span>Buy pot ($' + formatMoney(potCost) + ')</span>',
+        money < potCost,
+        'potBtn'
+      );
+
+      updateButtonState(
+        buyAutoHarvesterBtn,
+        hasAutoHarvester ? '<span>Auto-Harvester (Owned)</span>' : '<span>Auto-Harvester ($' + formatMoney(autoHarvesterCost) + ')</span>',
+        hasAutoHarvester || money < autoHarvesterCost,
+        'autoHarvesterBtn'
+      );
+
+      updateButtonState(
+        buyAutoPlanterBtn,
+        hasAutoPlanter ? '<span>Auto-Planter (Owned)</span>' : '<span>Auto-Planter ($' + formatMoney(autoPlanterCost) + ')</span>',
+        hasAutoPlanter || money < autoPlanterCost,
+        'autoPlanterBtn'
+      );
+
+      // Show seed buyer only after auto-planter is purchased
+      if (hasAutoPlanter) {
+        buyAutoSeederBtn.style.display = 'block';
+        updateButtonState(
+          buyAutoSeederBtn,
+          hasAutoSeeder ? '<span>Seed Buyer (Owned)</span>' : '<span>Seed Buyer ($' + formatMoney(autoSeederCost) + ')</span>',
+          hasAutoSeeder || money < autoSeederCost,
+          'autoSeederBtn'
+        );
+      } else {
+        buyAutoSeederBtn.style.display = 'none';
+      }
+    }
+
+
+    // Auto-grow progress over time
+    setInterval(function() {
+      pots.forEach(function(pot) {
+        if (pot.planted && pot.growth < 100) {
+          pot.growth = (Date.now() - pot.plantTime) / growthDuration * 100;
+          if (pot.growth > 100) pot.growth = 100;
+        }
+
+        // Auto-harvest when ready
+        if (hasAutoHarvester && pot.growth >= 100 && pot.planted) {
+          // Give a brief moment to see the final flower emoji before harvesting
+          setTimeout(function() {
+            harvestFlower(pot.id);
+          }, 200);
+        }
+
+      });
+      update();
+    }, 16);
+
+    // Update button states less frequently to avoid interfering with clicks
+    setInterval(function() {
+      updateControls();
+    }, 100);
+
+    // Auto-planter runs less frequently to avoid consuming seeds too aggressively
+    setInterval(function() {
+      if (hasAutoPlanter) {
+        pots.forEach(function(pot) {
+          // Check if pot is currently being harvested
+          var potElement = document.querySelector(`[data-pot="${pot.id}"]`);
+          var isHarvesting = potElement && potElement.closest('.pot').classList.contains('harvesting');
+
+          // Auto-plant if empty, we have seeds, and pot isn't mid-harvest animation
+          if (!pot.planted && seeds > 0 && !isHarvesting) {
+            seeds--;
+            pot.growth = 0;
+            pot.planted = true;
+            pot.plantTime = Date.now();
+          }
+        });
+        update();
+      }
+    }, 500);
+
+    // Auto-seeder runs periodically to buy seeds when needed
+    setInterval(function() {
+      if (hasAutoSeeder && seeds === 0 && money >= seedCost) {
+        money -= seedCost;
+        seeds++;
+        update();
+      }
+    }, 1000);
+
+    function attachDirectListeners() {
+      console.log('Attaching direct button listeners...');
+
+      buySeedBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        console.log('Buy seed clicked directly - Money:', money, 'Cost:', seedCost, 'Disabled:', this.disabled);
+        if (!this.disabled && money >= seedCost) {
+          money -= seedCost;
+          seeds++;
+          console.log('Seed purchased - New money:', money, 'New seeds:', seeds);
+          update();
+        }
+      });
+
+      buyPotBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        console.log('Buy pot clicked directly');
+        if (!this.disabled && money >= potCost) {
+          if (seeds === 0 && money - potCost < seedCost && pots.length >= 1) {
+            if (!confirm('Warning: You have no seeds and buying this pot will leave you unable to afford seeds ($20). You may get stuck! Continue anyway?')) {
+              return;
+            }
+          }
+          money -= potCost;
+          pots.push({
+            id: pots.length,
+            planted: false,
+            growth: 0,
+            plantTime: null
+          });
+          renderPots();
+          update();
+        }
+      });
+
+      buyAutoHarvesterBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        console.log('Auto-harvester clicked directly');
+        if (!this.disabled && money >= autoHarvesterCost && !hasAutoHarvester) {
+          money -= autoHarvesterCost;
+          hasAutoHarvester = true;
+          renderPots(); // Re-render pots to hide harvest buttons
+          update();
+        }
+      });
+
+      buyAutoPlanterBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        console.log('Auto-planter clicked directly');
+        if (!this.disabled && money >= autoPlanterCost && !hasAutoPlanter) {
+          money -= autoPlanterCost;
+          hasAutoPlanter = true;
+          renderPots(); // Re-render pots to hide plant buttons
+          update();
+        }
+      });
+
+      buyAutoSeederBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        console.log('Auto-seeder clicked directly');
+        if (!this.disabled && money >= autoSeederCost && !hasAutoSeeder) {
+          money -= autoSeederCost;
+          hasAutoSeeder = true;
+          update();
+        }
+      });
+    }
+
+    // Attach direct listeners after a delay
+    setTimeout(attachDirectListeners, 100);
+
+    // Initial render
+    renderPots();
+    update();
+    updateControls();
+  })();
+</script>
