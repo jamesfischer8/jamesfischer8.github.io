@@ -197,7 +197,7 @@ title: The Garden
       Money: $<span id="money">0</span> <br>
       Seeds: <span id="seeds">1</span> <br>
       Pots: <span id="pot-count">1</span> <br>
-      Seed Buyers: <span id="seed-buyer-count">0</span>
+      <span id="seeds-per-sec-line" style="display: none;">Seeds/sec: <span id="seed-buyer-count">0</span> <br></span>
     </div>
 
     <div id="inventory">
@@ -223,6 +223,7 @@ title: The Garden
     var seedsEl = document.getElementById('seeds');
     var potCountEl = document.getElementById('pot-count');
     var seedBuyerCountEl = document.getElementById('seed-buyer-count');
+    var seedsPerSecLineEl = document.getElementById('seeds-per-sec-line');
     var buySeedBtn = document.getElementById('buy-seed');
     var buyPotBtn = document.getElementById('buy-pot');
     var buyAutoHarvesterBtn = document.getElementById('buy-auto-harvester');
@@ -390,6 +391,7 @@ title: The Garden
       if (uiState.seedBuyerCount !== value) {
         uiState.seedBuyerCount = value;
         seedBuyerCountEl.textContent = value;
+        seedsPerSecLineEl.style.display = value > 0 ? 'inline' : 'none';
       }
     }
 
@@ -412,7 +414,7 @@ title: The Garden
       updateMoney(money);
       updateSeeds(seeds);
       updatePotCount(pots.length);
-      updateSeedBuyerCount(seedBuyerCount);
+      updateSeedBuyerCount(seedBuyerCount); // seedBuyerCount = seeds per second
 
       // Update each pot's display
       pots.forEach(function(pot) {
