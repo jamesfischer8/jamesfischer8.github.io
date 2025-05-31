@@ -147,6 +147,19 @@ title: The Garden
   .pot-actions button {
     flex: 1;
   }
+  .pot-actions:empty {
+    display: none;
+  }
+  .pot.compact {
+    min-width: 160px;
+    padding: 12px;
+  }
+  .pot.compact h3 {
+    margin-bottom: 8px;
+  }
+  .pot.compact progress {
+    margin: 8px 4px 4px 4px;
+  }
   .plant-visual {
     font-size: 16px;
     opacity: 0.8;
@@ -261,7 +274,8 @@ title: The Garden
 
     function createPotElement(pot) {
       var potDiv = document.createElement('div');
-      potDiv.className = 'pot';
+      var isCompact = hasAutoPlanter && hasAutoHarvester;
+      potDiv.className = isCompact ? 'pot compact' : 'pot';
 
       var plantButton = hasAutoPlanter ? '' : `<button class="plant-btn" data-pot="${pot.id}">Plant seed</button>`;
       var harvestButton = hasAutoHarvester ? '' : `<button class="harvest-btn" data-pot="${pot.id}" disabled>Harvest ($${formatMoney(salePrice)})</button>`;
