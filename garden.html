@@ -279,12 +279,12 @@ title: The Garden
     };
 
     function getNextSeedBuyerCost() {
-      return Math.ceil(baseAutoSeederCost * Math.pow(1.15, seedBuyerCount));
+      return Math.ceil(baseAutoSeederCost * Math.pow(1.05, seedBuyerCount));
     }
 
     function getCurrentPotCost() {
-      var doublingFactor = Math.floor(pots.length / 6);
-      return basePotCost * Math.pow(2, doublingFactor);
+      var scalingFactor = Math.floor(pots.length / 6);
+      return basePotCost * Math.pow(1.5, scalingFactor);
     }
 
     function hasGrowingPlants() {
