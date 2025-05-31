@@ -287,6 +287,12 @@ title: The Garden
       return basePotCost * Math.pow(2, doublingFactor);
     }
 
+    function hasGrowingPlants() {
+      return pots.some(function(pot) {
+        return pot.planted; // Either growing or ready to harvest
+      });
+    }
+
     function createPotElement(pot) {
       var potDiv = document.createElement('div');
       var isCompact = hasAutoPlanter && hasAutoHarvester;
@@ -489,7 +495,7 @@ title: The Garden
       updateButtonState(
         buySeedBtn,
         '<span>Buy seed ($' + formatMoney(seedCost) + ')</span>',
-        money < seedCost && !(money === 0 && seeds === 0),
+        money < seedCost && !(money === 0 && seeds === 0 && !hasGrowingPlants()),
         'seedBtn'
       );
 
@@ -616,7 +622,7 @@ title: The Garden
       buySeedBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         console.log('Buy seed clicked directly - Money:', money, 'Cost:', seedCost, 'Disabled:', this.disabled);
-        if (!this.disabled && (money >= seedCost || (money === 0 && seeds === 0))) {
+        if (!this.disabled && (money >= seedCost || (money === 0 && seeds === 0 && !hasGrowingPlants()))) {
           money -= seedCost;
           seeds++;
           console.log('Seed purchased - New money:', money, 'New seeds:', seeds);
