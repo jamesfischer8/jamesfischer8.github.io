@@ -196,7 +196,8 @@ title: The Garden
     <div id="stats">
       Money: $<span id="money">0</span> <br>
       Seeds: <span id="seeds">1</span> <br>
-      Pots: <span id="pot-count">1</span>
+      Pots: <span id="pot-count">1</span> <br>
+      Seed Buyers: <span id="seed-buyer-count">0</span>
     </div>
 
     <div id="inventory">
@@ -221,6 +222,7 @@ title: The Garden
     var moneyEl = document.getElementById('money');
     var seedsEl = document.getElementById('seeds');
     var potCountEl = document.getElementById('pot-count');
+    var seedBuyerCountEl = document.getElementById('seed-buyer-count');
     var buySeedBtn = document.getElementById('buy-seed');
     var buyPotBtn = document.getElementById('buy-pot');
     var buyAutoHarvesterBtn = document.getElementById('buy-auto-harvester');
@@ -249,16 +251,17 @@ title: The Garden
     var potCost = isTestMode ? Math.ceil(100 * 0.15) : 100;
     var autoHarvesterCost = isTestMode ? Math.ceil(1000 * 0.15) : 1000;
     var autoPlanterCost = isTestMode ? Math.ceil(200 * 0.15) : 200;
-    var autoSeederCost = isTestMode ? Math.ceil(10000 * 0.15) : 10000;
+    var baseAutoSeederCost = isTestMode ? Math.ceil(10000 * 0.15) : 10000;
     var hasAutoHarvester = false;
     var hasAutoPlanter = false;
-    var hasAutoSeeder = false;
+    var seedBuyerCount = 0;
 
     // UI state tracking
     var uiState = {
       money: -1, // Initialize to -1 to force first update
       seeds: -1,
       potCount: -1,
+      seedBuyerCount: -1,
       seedBtnText: '',
       potBtnText: '',
       autoHarvesterBtnText: '',
@@ -271,6 +274,10 @@ title: The Garden
       autoSeederBtnDisabled: null,
       pots: {} // Track pot UI states
     };
+
+    function getNextSeedBuyerCost() {
+      return Math.ceil(baseAutoSeederCost * Math.pow(1.15, seedBuyerCount));
+    }
 
     function createPotElement(pot) {
       var potDiv = document.createElement('div');
@@ -377,6 +384,13 @@ title: The Garden
       }
     }
 
+    function updateSeedBuyerCount(value) {
+      if (uiState.seedBuyerCount !== value) {
+        uiState.seedBuyerCount = value;
+        seedBuyerCountEl.textContent = value;
+      }
+    }
+
     function updateButtonState(button, text, disabled, stateKey) {
       var textKey = stateKey + 'Text';
       var disabledKey = stateKey + 'Disabled';
@@ -396,6 +410,7 @@ title: The Garden
       updateMoney(money);
       updateSeeds(seeds);
       updatePotCount(pots.length);
+      updateSeedBuyerCount(seedBuyerCount);
 
       // Update each pot's display
       pots.forEach(function(pot) {
@@ -493,10 +508,14 @@ title: The Garden
       // Show seed buyer only after auto-planter is purchased
       if (hasAutoPlanter) {
         buyAutoSeederBtn.style.display = 'block';
+        var nextCost = getNextSeedBuyerCost();
+        var buttonText = seedBuyerCount > 0
+          ? '<span>Seed Buyer #' + (seedBuyerCount + 1) + ' ($' + formatMoney(nextCost) + ')</span>'
+          : '<span>Seed Buyer ($' + formatMoney(nextCost) + ')</span>';
         updateButtonState(
           buyAutoSeederBtn,
-          hasAutoSeeder ? '<span>Seed Buyer (Owned)</span>' : '<span>Seed Buyer ($' + formatMoney(autoSeederCost) + ')</span>',
-          hasAutoSeeder || money < autoSeederCost,
+          buttonText,
+          money < nextCost,
           'autoSeederBtn'
         );
       } else {
@@ -550,11 +569,14 @@ title: The Garden
       }
     }, 500);
 
-    // Auto-seeder runs periodically to buy seeds when needed
+    // Auto-seeders run periodically to buy seeds when needed
     setInterval(function() {
-      if (hasAutoSeeder && seeds === 0 && money >= seedCost) {
-        money -= seedCost;
-        seeds++;
+      if (seedBuyerCount > 0 && money >= seedCost) {
+        // Each seed buyer purchases one seed per second
+        for (var i = 0; i < seedBuyerCount && money >= seedCost; i++) {
+          money -= seedCost;
+          seeds++;
+        }
         update();
       }
     }, 1000);
@@ -613,10 +635,11 @@ title: The Garden
 
       buyAutoSeederBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('Auto-seeder clicked directly');
-        if (!this.disabled && money >= autoSeederCost && !hasAutoSeeder) {
-          money -= autoSeederCost;
-          hasAutoSeeder = true;
+        console.log('Seed buyer clicked directly');
+        var nextCost = getNextSeedBuyerCost();
+        if (!this.disabled && money >= nextCost) {
+          money -= nextCost;
+          seedBuyerCount++;
           update();
         }
       });
