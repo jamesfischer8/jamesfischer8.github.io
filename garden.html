@@ -249,7 +249,7 @@ title: The Garden
     var growthDuration = isTestMode ? 2250 : 15000; // 15% of normal time when test=true
     var salePrice = 50;
     var seedCost = isTestMode ? Math.ceil(1 * 0.15) : 1;
-    var potCost = isTestMode ? Math.ceil(100 * 0.15) : 100;
+    var basePotCost = isTestMode ? Math.ceil(100 * 0.15) : 100;
     var autoHarvesterCost = isTestMode ? Math.ceil(1000 * 0.15) : 1000;
     var autoPlanterCost = isTestMode ? Math.ceil(200 * 0.15) : 200;
     var baseAutoSeederCost = isTestMode ? Math.ceil(10000 * 0.15) : 10000;
@@ -280,6 +280,11 @@ title: The Garden
 
     function getNextSeedBuyerCost() {
       return Math.ceil(baseAutoSeederCost * Math.pow(1.15, seedBuyerCount));
+    }
+
+    function getCurrentPotCost() {
+      var doublingFactor = Math.floor(pots.length / 6);
+      return basePotCost * Math.pow(2, doublingFactor);
     }
 
     function createPotElement(pot) {
@@ -490,8 +495,8 @@ title: The Garden
 
       updateButtonState(
         buyPotBtn,
-        '<span>Buy pot ($' + formatMoney(potCost) + ')</span>',
-        money < potCost,
+        '<span>Buy pot ($' + formatMoney(getCurrentPotCost()) + ')</span>',
+        money < getCurrentPotCost(),
         'potBtn'
       );
 
@@ -622,8 +627,9 @@ title: The Garden
       buyPotBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         console.log('Buy pot clicked directly');
-        if (!this.disabled && money >= potCost) {
-          money -= potCost;
+        var currentPotCost = getCurrentPotCost();
+        if (!this.disabled && money >= currentPotCost) {
+          money -= currentPotCost;
           pots.push({
             id: pots.length,
             planted: false,
