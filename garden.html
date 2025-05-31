@@ -255,7 +255,7 @@ title: The Garden
     var hasAutoHarvester = false;
     var hasAutoPlanter = false;
     var seedBuyerCount = 0;
-    var seedsFloat = 1.0; // Fractional seed count
+    var seedBuyerRemainder = 0.0; // Fractional remainder for seed buying
     var lastSeedBuyerUpdate = Date.now();
 
     // UI state tracking
@@ -331,8 +331,7 @@ title: The Garden
     function plantSeed(potId) {
       var pot = pots[potId];
       if (seeds > 0 && !pot.planted) {
-        seedsFloat -= 1.0;
-        seeds = Math.floor(seedsFloat);
+        seeds--;
         pot.growth = 0;
         pot.planted = true;
         pot.plantTime = Date.now();
@@ -562,8 +561,7 @@ title: The Garden
 
           // Auto-plant if empty, we have seeds, and pot isn't mid-harvest animation
           if (!pot.planted && seeds > 0 && !isHarvesting) {
-            seedsFloat -= 1.0;
-            seeds = Math.floor(seedsFloat);
+            seeds--;
             pot.growth = 0;
             pot.planted = true;
             pot.plantTime = Date.now();
@@ -573,30 +571,35 @@ title: The Garden
       }
     }, 500);
 
-    // Auto-seeders run smoothly, adding fractional seeds over time
+    // Auto-seeders run smoothly, accumulating fractional progress
     setInterval(function() {
       if (seedBuyerCount > 0) {
         var now = Date.now();
         var deltaTime = (now - lastSeedBuyerUpdate) / 1000; // Convert to seconds
         lastSeedBuyerUpdate = now;
 
-        // Calculate how many seeds should be added based on time passed
-        var seedsToAdd = seedBuyerCount * deltaTime;
-        var seedCostTotal = seedsToAdd * seedCost;
+        // Add fractional seeds to remainder (seedBuyerCount seeds per second)
+        seedBuyerRemainder += seedBuyerCount * deltaTime;
 
-        if (money >= seedCostTotal) {
-          // Can afford all the seeds
-          money = Math.round(money - seedCostTotal);
-          seedsFloat += seedsToAdd;
-          seeds = Math.floor(seedsFloat);
-        } else if (money > 0) {
-          // Can only afford some seeds
-          var affordableSeeds = money / seedCost;
-          money = 0;
-          seedsFloat += affordableSeeds;
-          seeds = Math.floor(seedsFloat);
+        // Buy whole seeds from the accumulated remainder
+        var wholeSeedsToBuy = Math.floor(seedBuyerRemainder);
+        if (wholeSeedsToBuy > 0) {
+          var totalCost = wholeSeedsToBuy * seedCost;
+          if (money >= totalCost) {
+            // Can afford all whole seeds
+            money -= totalCost;
+            seeds += wholeSeedsToBuy;
+            seedBuyerRemainder -= wholeSeedsToBuy; // Keep the fractional part
+            update();
+          } else if (money >= seedCost) {
+            // Can afford some seeds
+            var affordableSeeds = Math.floor(money / seedCost);
+            money -= affordableSeeds * seedCost;
+            seeds += affordableSeeds;
+            seedBuyerRemainder -= affordableSeeds; // Keep the fractional part
+            update();
+          }
         }
-        update();
       }
     }, 16);
 
@@ -608,8 +611,7 @@ title: The Garden
         console.log('Buy seed clicked directly - Money:', money, 'Cost:', seedCost, 'Disabled:', this.disabled);
         if (!this.disabled && (money >= seedCost || (money === 0 && seeds === 0))) {
           money -= seedCost;
-          seedsFloat += 1.0;
-          seeds = Math.floor(seedsFloat);
+          seeds++;
           console.log('Seed purchased - New money:', money, 'New seeds:', seeds);
           update();
         }
@@ -660,9 +662,10 @@ title: The Garden
         if (!this.disabled && money >= nextCost) {
           money -= nextCost;
           seedBuyerCount++;
-          // Reset timer when first seed buyer is purchased to prevent backfill
+          // Reset timer and remainder when first seed buyer is purchased to prevent backfill
           if (seedBuyerCount === 1) {
             lastSeedBuyerUpdate = Date.now();
+            seedBuyerRemainder = 0.0;
           }
           update();
         }
