@@ -451,7 +451,7 @@ title: The Garden
       updateButtonState(
         buySeedBtn,
         '<span>Buy seed ($' + formatMoney(seedCost) + ')</span>',
-        money < seedCost,
+        money < seedCost && !(money === 0 && seeds === 0),
         'seedBtn'
       );
 
@@ -551,7 +551,7 @@ title: The Garden
       buySeedBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         console.log('Buy seed clicked directly - Money:', money, 'Cost:', seedCost, 'Disabled:', this.disabled);
-        if (!this.disabled && money >= seedCost) {
+        if (!this.disabled && (money >= seedCost || (money === 0 && seeds === 0))) {
           money -= seedCost;
           seeds++;
           console.log('Seed purchased - New money:', money, 'New seeds:', seeds);
@@ -563,11 +563,6 @@ title: The Garden
         e.stopPropagation();
         console.log('Buy pot clicked directly');
         if (!this.disabled && money >= potCost) {
-          if (seeds === 0 && money - potCost < seedCost && pots.length >= 1) {
-            if (!confirm('Warning: You have no seeds and buying this pot will leave you unable to afford seeds ($20). You may get stuck! Continue anyway?')) {
-              return;
-            }
-          }
           money -= potCost;
           pots.push({
             id: pots.length,
