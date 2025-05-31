@@ -240,16 +240,16 @@ title: The Garden
       }
     ];
 
-    // Check for fast testing mode
+    // Check for test mode
     var urlParams = new URLSearchParams(window.location.search);
-    var isFastMode = urlParams.has('fast');
-    var growthDuration = isFastMode ? 2250 : 15000; // 15% of normal time when fast=true
+    var isTestMode = urlParams.has('test');
+    var growthDuration = isTestMode ? 2250 : 15000; // 15% of normal time when test=true
     var salePrice = 50;
-    var seedCost = 1;
-    var potCost = 100;
-    var autoHarvesterCost = 1000;
-    var autoPlanterCost = 200;
-    var autoSeederCost = 10000;
+    var seedCost = isTestMode ? Math.ceil(1 * 0.15) : 1;
+    var potCost = isTestMode ? Math.ceil(100 * 0.15) : 100;
+    var autoHarvesterCost = isTestMode ? Math.ceil(1000 * 0.15) : 1000;
+    var autoPlanterCost = isTestMode ? Math.ceil(200 * 0.15) : 200;
+    var autoSeederCost = isTestMode ? Math.ceil(10000 * 0.15) : 10000;
     var hasAutoHarvester = false;
     var hasAutoPlanter = false;
     var hasAutoSeeder = false;
