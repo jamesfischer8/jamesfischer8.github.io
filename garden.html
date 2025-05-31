@@ -117,6 +117,12 @@ title: The Garden
   #pots-container.compact-mode .pot .pot-actions {
     display: none;
   }
+  #pots-container.auto-planter .pot .plant-btn {
+    display: none;
+  }
+  #pots-container.auto-harvester .pot .harvest-btn {
+    display: none;
+  }
   #pots-container.minimal-mode .pot {
     border-width: 0px;
     border-color: rgba(90, 77, 53, 0);
@@ -337,6 +343,19 @@ title: The Garden
         potsContainer.classList.remove('minimal-mode');
       } else {
         potsContainer.classList.remove('compact-mode', 'minimal-mode');
+      }
+
+      // Update individual automation classes
+      if (hasAutoPlanter) {
+        potsContainer.classList.add('auto-planter');
+      } else {
+        potsContainer.classList.remove('auto-planter');
+      }
+
+      if (hasAutoHarvester) {
+        potsContainer.classList.add('auto-harvester');
+      } else {
+        potsContainer.classList.remove('auto-harvester');
       }
     }
 
