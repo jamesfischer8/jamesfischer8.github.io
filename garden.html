@@ -491,6 +491,7 @@ title: The Garden
     var seedBuyerCount = 0;
     var seedBuyerRemainder = 0.0; // Fractional remainder for seed buying
     var lastSeedBuyerUpdate = Date.now();
+    var currentSeedBuyerRate = 0; // Current effective rate after slowdown
     var forceMinimal = false; // Manual toggle override
     var testFreeMode = false; // Test mode for free purchases
     var testFastGrowth = false; // Test mode for fast growth
@@ -502,6 +503,7 @@ title: The Garden
       seeds: -1,
       potCount: -1,
       seedBuyerCount: -1,
+      currentSeedBuyerRate: -1,
       seedBtnText: '',
       potBtnText: '',
       autoHarvesterBtnText: '',
@@ -696,11 +698,16 @@ title: The Garden
       }
     }
 
-    function updateSeedBuyerCount(value) {
-      if (uiState.seedBuyerCount !== value) {
+    function updateSeedBuyerCount(value, currentRate) {
+      var rateChanged = uiState.currentSeedBuyerRate !== currentRate;
+      if (uiState.seedBuyerCount !== value || rateChanged) {
         uiState.seedBuyerCount = value;
-        seedBuyerCountEl.textContent = value;
+        uiState.currentSeedBuyerRate = currentRate;
+
         if (value > 0) {
+          // Show both base count and current effective rate
+          var rateText = currentRate !== undefined ? currentRate.toFixed(1) : value;
+          seedBuyerCountEl.textContent = rateText;
           seedsPerSecLineEl.classList.remove('hidden');
         } else {
           seedsPerSecLineEl.classList.add('hidden');
@@ -727,7 +734,7 @@ title: The Garden
       updateMoney(money);
       updateSeeds(seeds);
       updatePotCount(pots.length);
-      updateSeedBuyerCount(seedBuyerCount); // seedBuyerCount = seeds per second
+      updateSeedBuyerCount(seedBuyerCount, currentSeedBuyerRate); // Show effective rate
 
       // Update each pot's display
       pots.forEach(function(pot) {
@@ -911,8 +918,15 @@ title: The Garden
         var deltaTime = (now - lastSeedBuyerUpdate) / 1000; // Convert to seconds
         lastSeedBuyerUpdate = now;
 
-        // Add fractional seeds to remainder (seedBuyerCount seeds per second)
-        seedBuyerRemainder += seedBuyerCount * deltaTime;
+        // Calculate slowdown multiplier based on seed stockpile
+        // Normal rate for seeds < 100, 1% slower for each seed over 99
+        var slowdownMultiplier = seeds < 100 ? 1 : 1 / (1 + (seeds - 99) * 0.01);
+
+        // Update current effective rate
+        currentSeedBuyerRate = seedBuyerCount * slowdownMultiplier;
+
+        // Add fractional seeds to remainder (seedBuyerCount seeds per second, adjusted by slowdown)
+        seedBuyerRemainder += seedBuyerCount * deltaTime * slowdownMultiplier;
 
         // Buy whole seeds from the accumulated remainder
         var wholeSeedsToBuy = Math.floor(seedBuyerRemainder);
