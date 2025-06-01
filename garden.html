@@ -161,6 +161,59 @@ title: The Garden
     font-size: 18px;
     text-align: center;
   }
+
+  /* Help icon for tooltips */
+  .help-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #4a3f2a;
+    color: #c49b61;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 16px;
+    margin-left: 4px;
+    cursor: help;
+    border: 1px solid #6b5639;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .help-icon:hover {
+    background: #6b5639;
+    color: #d4c4a0;
+    transform: scale(1.1);
+  }
+
+  /* Custom tooltip */
+  .tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2a2a2a;
+    color: #d4c4a0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: normal;
+    white-space: nowrap;
+    z-index: 1000;
+    border: 1px solid #6b5639;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+    transition: opacity 0.1s ease, visibility 0.1s ease;
+    pointer-events: none;
+  }
+
+
+  .help-icon:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
   #inventory {
     margin-bottom: 10px;
   }
@@ -419,7 +472,7 @@ title: The Garden
       Money: <span id="money">$0</span> <br>
       Seeds: <span id="seeds">1</span> <br>
       Pots: <span id="pot-count">1</span> <br>
-      <span id="seeds-per-sec-line" class="hidden">Seeds/sec: <span id="seed-buyer-count">0</span> <br></span>
+      <span id="seeds-per-sec-line" class="hidden">Seeds/sec: <span id="seed-buyer-count">0</span> <span class="help-icon">?<span class="tooltip">Rate slows down as seeds accumulate</span></span> <br></span>
     </div>
 
     <div id="inventory">
