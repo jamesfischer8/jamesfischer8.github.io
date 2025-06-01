@@ -34,9 +34,99 @@ title: The Garden
     display: none !important;
   }
 
-  .test-only {
+  /* Test palette */
+  #test-palette {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #2a2a2a;
+    border: 2px solid #666;
+    border-radius: 3px;
+    padding: 10px;
+    width: 180px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    transition: transform 0.3s ease;
+  }
+
+  #test-palette.collapsed {
+    transform: translateX(100%);
+  }
+
+  #test-palette h4 {
+    margin: 0 0 8px 0;
+    color: #fff;
+    font-size: 12px;
+    text-align: center;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Courier New', monospace;
+  }
+
+  #test-palette button {
+    width: 100%;
+    margin: 2px 0;
+    font-size: 10px;
+    padding: 3px 4px;
+    background: #333;
+    color: #ccc;
+    border: 1px solid #555;
+    border-radius: 2px;
+    font-family: 'Courier New', monospace;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  #test-palette button:hover {
     background: #444;
-    border-color: #666;
+    color: #fff;
+    border-color: #777;
+  }
+
+  #test-palette .test-section {
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #555;
+  }
+
+  #test-palette .test-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  #test-palette-toggle {
+    position: absolute;
+    left: -27px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #2a2a2a;
+    border: 2px solid #666;
+    border-right: none;
+    border-radius: 3px 0 0 3px;
+    padding: 6px 2px;
+    cursor: pointer;
+    color: #ccc;
+    font-size: 14px;
+    width: 27px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: none;
+  }
+
+  #test-palette-toggle:hover {
+    background: #444;
+    color: #fff;
+    border-color: #777;
+  }
+
+  #test-palette.collapsed #test-palette-toggle {
+    border-radius: 6px 0 0 6px;
   }
   /* Game container - mobile first */
   #game {
@@ -300,6 +390,29 @@ title: The Garden
 </style>
 
 <h1 class="page-title">The Garden</h1>
+<!-- Test Palette -->
+<div id="test-palette" class="hidden">
+  <div id="test-palette-toggle" title="Toggle Test Palette">⚙</div>
+  <h4>Test Tools</h4>
+
+  <div class="test-section">
+    <button id="test-free-mode">Toggle Free Mode</button>
+    <button id="test-add-money">Add $10,000</button>
+    <button id="test-add-seeds">Add 100 Seeds</button>
+  </div>
+
+  <div class="test-section">
+    <button id="test-speed-growth">Toggle Fast Growth</button>
+    <button id="test-toggle-minimal">Toggle Minimal</button>
+    <button id="test-add-pots">Add 10 Pots</button>
+  </div>
+
+  <div class="test-section">
+    <button id="test-unlock-all">Unlock All Upgrades</button>
+    <button id="test-reset-game">Reset Game</button>
+  </div>
+</div>
+
 <div id="game">
   <div id="sidebar">
     <div id="stats">
@@ -317,7 +430,6 @@ title: The Garden
         <button id="buy-auto-planter" disabled>Auto-Planter ($0)</button>
         <button id="buy-auto-harvester" disabled>Auto-Harvester ($0)</button>
         <button id="buy-auto-seeder" disabled class="hidden">Seed Buyer ($0)</button>
-        <button id="toggle-minimal" class="test-only hidden">Toggle Minimal</button>
       </div>
     </div>
   </div>
@@ -339,7 +451,7 @@ title: The Garden
     var buyAutoHarvesterBtn = document.getElementById('buy-auto-harvester');
     var buyAutoPlanterBtn = document.getElementById('buy-auto-planter');
     var buyAutoSeederBtn = document.getElementById('buy-auto-seeder');
-    var toggleMinimalBtn = document.getElementById('toggle-minimal');
+    var testPalette = document.getElementById('test-palette');
     var potsContainer = document.getElementById('pots-container');
 
     // Game state
@@ -372,6 +484,8 @@ title: The Garden
     var seedBuyerRemainder = 0.0; // Fractional remainder for seed buying
     var lastSeedBuyerUpdate = Date.now();
     var forceMinimal = false; // Manual toggle override
+    var testFreeMode = false; // Test mode for free purchases
+    var testFastGrowth = false; // Test mode for fast growth
 
     // UI state tracking
     var uiState = {
@@ -672,28 +786,28 @@ title: The Garden
       updateButtonState(
         buySeedBtn,
         '<span>Buy seed ($' + formatMoney(seedCost) + ')</span>',
-        money < seedCost && !(money === 0 && seeds === 0 && !hasGrowingPlants()),
+        !testFreeMode && money < seedCost && !(money === 0 && seeds === 0 && !hasGrowingPlants()),
         'seedBtn'
       );
 
       updateButtonState(
         buyPotBtn,
         '<span>Buy pot ($' + formatMoney(getCurrentPotCost()) + ')</span>',
-        money < getCurrentPotCost(),
+        !testFreeMode && money < getCurrentPotCost(),
         'potBtn'
       );
 
       updateButtonState(
         buyAutoHarvesterBtn,
         hasAutoHarvester ? '<span>Auto-Harvester (Owned)</span>' : '<span>Auto-Harvester ($' + formatMoney(autoHarvesterCost) + ')</span>',
-        hasAutoHarvester || money < autoHarvesterCost,
+        hasAutoHarvester || (!testFreeMode && money < autoHarvesterCost),
         'autoHarvesterBtn'
       );
 
       updateButtonState(
         buyAutoPlanterBtn,
         hasAutoPlanter ? '<span>Auto-Planter (Owned)</span>' : '<span>Auto-Planter ($' + formatMoney(autoPlanterCost) + ')</span>',
-        hasAutoPlanter || money < autoPlanterCost,
+        hasAutoPlanter || (!testFreeMode && money < autoPlanterCost),
         'autoPlanterBtn'
       );
 
@@ -707,7 +821,7 @@ title: The Garden
         updateButtonState(
           buyAutoSeederBtn,
           buttonText,
-          money < nextCost,
+          !testFreeMode && money < nextCost,
           'autoSeederBtn'
         );
       } else {
@@ -720,7 +834,8 @@ title: The Garden
     setInterval(function() {
       pots.forEach(function(pot) {
         if (pot.planted && pot.growth < 100) {
-          pot.growth = (Date.now() - pot.plantTime) / growthDuration * 100;
+          var effectiveGrowthDuration = testFastGrowth ? growthDuration / 10 : growthDuration;
+          pot.growth = (Date.now() - pot.plantTime) / effectiveGrowthDuration * 100;
           if (pot.growth > 100) pot.growth = 100;
         }
 
@@ -799,8 +914,8 @@ title: The Garden
       buySeedBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         console.log('Buy seed clicked directly - Money:', money, 'Cost:', seedCost, 'Disabled:', this.disabled);
-        if (!this.disabled && (money >= seedCost || (money === 0 && seeds === 0 && !hasGrowingPlants()))) {
-          money -= seedCost;
+        if (!this.disabled && (testFreeMode || money >= seedCost || (money === 0 && seeds === 0 && !hasGrowingPlants()))) {
+          if (!testFreeMode) money -= seedCost;
           seeds++;
           console.log('Seed purchased - New money:', money, 'New seeds:', seeds);
           update();
@@ -811,8 +926,8 @@ title: The Garden
         e.stopPropagation();
         console.log('Buy pot clicked directly');
         var currentPotCost = getCurrentPotCost();
-        if (!this.disabled && money >= currentPotCost) {
-          money -= currentPotCost;
+        if (!this.disabled && (testFreeMode || money >= currentPotCost)) {
+          if (!testFreeMode) money -= currentPotCost;
           var newPot = {
             id: pots.length,
             planted: false,
@@ -828,8 +943,8 @@ title: The Garden
       buyAutoHarvesterBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         console.log('Auto-harvester clicked directly');
-        if (!this.disabled && money >= autoHarvesterCost && !hasAutoHarvester) {
-          money -= autoHarvesterCost;
+        if (!this.disabled && (testFreeMode || money >= autoHarvesterCost) && !hasAutoHarvester) {
+          if (!testFreeMode) money -= autoHarvesterCost;
           hasAutoHarvester = true;
           updatePotButtons(); // Update button visibility and animate compactness
           update();
@@ -839,8 +954,8 @@ title: The Garden
       buyAutoPlanterBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         console.log('Auto-planter clicked directly');
-        if (!this.disabled && money >= autoPlanterCost && !hasAutoPlanter) {
-          money -= autoPlanterCost;
+        if (!this.disabled && (testFreeMode || money >= autoPlanterCost) && !hasAutoPlanter) {
+          if (!testFreeMode) money -= autoPlanterCost;
           hasAutoPlanter = true;
           updatePotButtons(); // Update button visibility and animate compactness
           update();
@@ -851,8 +966,8 @@ title: The Garden
         e.stopPropagation();
         console.log('Seed buyer clicked directly');
         var nextCost = getNextSeedBuyerCost();
-        if (!this.disabled && money >= nextCost) {
-          money -= nextCost;
+        if (!this.disabled && (testFreeMode || money >= nextCost)) {
+          if (!testFreeMode) money -= nextCost;
           seedBuyerCount++;
           // Reset timer and remainder when first seed buyer is purchased to prevent backfill
           if (seedBuyerCount === 1) {
@@ -864,16 +979,84 @@ title: The Garden
         }
       });
 
-      toggleMinimalBtn.addEventListener('click', function(e) {
+      // Test palette event listeners
+      document.getElementById('test-free-mode').addEventListener('click', function(e) {
+        e.stopPropagation();
+        testFreeMode = !testFreeMode;
+        this.textContent = testFreeMode ? 'Disable Free Mode' : 'Toggle Free Mode';
+        updateControls();
+      });
+
+      document.getElementById('test-add-money').addEventListener('click', function(e) {
+        e.stopPropagation();
+        money += 10000;
+        update();
+      });
+
+      document.getElementById('test-add-seeds').addEventListener('click', function(e) {
+        e.stopPropagation();
+        seeds += 100;
+        update();
+      });
+
+      document.getElementById('test-speed-growth').addEventListener('click', function(e) {
+        e.stopPropagation();
+        testFastGrowth = !testFastGrowth;
+        this.textContent = testFastGrowth ? 'Disable Fast Growth' : 'Toggle Fast Growth';
+      });
+
+      document.getElementById('test-toggle-minimal').addEventListener('click', function(e) {
         e.stopPropagation();
         forceMinimal = !forceMinimal;
         updatePotCompactness();
+        this.textContent = forceMinimal ? 'Disable Minimal' : 'Toggle Minimal';
+      });
+
+      document.getElementById('test-add-pots').addEventListener('click', function(e) {
+        e.stopPropagation();
+        for (var i = 0; i < 10; i++) {
+          var newPot = {
+            id: pots.length,
+            planted: false,
+            growth: 0,
+            plantTime: null
+          };
+          pots.push(newPot);
+          addNewPot(newPot);
+        }
+        update();
+      });
+
+      document.getElementById('test-unlock-all').addEventListener('click', function(e) {
+        e.stopPropagation();
+        hasAutoPlanter = true;
+        hasAutoHarvester = true;
+        seedBuyerCount = 5;
+        updatePotButtons();
+        update();
+      });
+
+      document.getElementById('test-reset-game').addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (confirm('Reset all game progress?')) {
+          location.reload();
+        }
+      });
+
+      // Test palette collapse/expand functionality
+      document.getElementById('test-palette-toggle').addEventListener('click', function(e) {
+        e.stopPropagation();
+        testPalette.classList.toggle('collapsed');
       });
     }
 
-    // Show toggle button only in test mode
+    // Show test palette only in test mode
     if (isTestMode) {
-      toggleMinimalBtn.classList.remove('hidden');
+      testPalette.classList.remove('hidden');
+      // Start collapsed on mobile screens
+      if (window.innerWidth <= 768) {
+        testPalette.classList.add('collapsed');
+      }
     }
 
     // Attach direct listeners after a delay
