@@ -974,8 +974,8 @@ title: The Garden
         lastSeedBuyerUpdate = now;
 
         // Calculate slowdown multiplier based on seed stockpile
-        // Normal rate for seeds < 100, 1% slower for each seed over 99
-        var slowdownMultiplier = seeds < 100 ? 1 : 1 / (1 + (seeds - 99) * 0.01);
+        // 1% slower for each seed starting from 0
+        var slowdownMultiplier = 1 / (1 + seeds * 0.01);
 
         // Update current effective rate
         currentSeedBuyerRate = seedBuyerCount * slowdownMultiplier;
