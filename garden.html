@@ -859,7 +859,7 @@ title: The Garden
     // Auto-planter runs less frequently to avoid consuming seeds too aggressively
     setInterval(function() {
       if (hasAutoPlanter) {
-        pots.forEach(function(pot) {
+        pots.some(function(pot) {
           // Check if pot is currently being harvested
           var potElement = document.querySelector(`[data-pot="${pot.id}"]`);
           var isHarvesting = potElement && potElement.closest('.pot').classList.contains('harvesting');
@@ -870,11 +870,14 @@ title: The Garden
             pot.growth = 0;
             pot.planted = true;
             pot.plantTime = Date.now();
-          }
+	    return true;
+	  } else {
+	    return false;
+	  }
         });
         update();
       }
-    }, 500);
+    }, 20);
 
     // Auto-seeders run smoothly, accumulating fractional progress
     setInterval(function() {
