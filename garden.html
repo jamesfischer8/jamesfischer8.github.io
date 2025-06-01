@@ -523,7 +523,7 @@ title: The Garden
 
     function updatePotCompactness() {
       var shouldBeCompact = hasAutoPlanter && hasAutoHarvester;
-      var shouldBeMinimal = (shouldBeCompact && pots.length >= 19 && seedBuyerCount >= 2) || forceMinimal;
+      var shouldBeMinimal = (shouldBeCompact && pots.length > 18) || forceMinimal;
 
       // Update container classes
       if (shouldBeMinimal) {
@@ -939,6 +939,7 @@ title: The Garden
           };
           pots.push(newPot);
           addNewPot(newPot);
+          updatePotCompactness();
           update();
         }
       });
@@ -977,7 +978,6 @@ title: The Garden
             lastSeedBuyerUpdate = Date.now();
             seedBuyerRemainder = 0.0;
           }
-          updatePotCompactness(); // Check if we hit the minimal threshold
           update();
         }
       });
@@ -1027,6 +1027,7 @@ title: The Garden
           pots.push(newPot);
           addNewPot(newPot);
         }
+        updatePotCompactness();
         update();
       });
 
