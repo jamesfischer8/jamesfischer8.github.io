@@ -239,6 +239,7 @@ button {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(196, 155, 97, 0.1);
   -webkit-user-select: none;
   user-select: none;
+  touch-action: manipulation; /* Prevent double-tap zoom on mobile */
 }
 
 button span {
