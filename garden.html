@@ -676,10 +676,7 @@ title: The Garden
         });
       });
 
-      // Trigger transitions after DOM is ready
-      setTimeout(function() {
-        updatePotCompactness();
-      }, 10);
+      // Note: updatePotCompactness() will be called by update() after renderPots()
     }
 
     function addNewPot(pot) {
@@ -1186,6 +1183,7 @@ title: The Garden
 
     // Initial render
     renderPots();
+    updatePotCompactness(); // Set correct compact state without animation
     update();
     updateControls();
 
