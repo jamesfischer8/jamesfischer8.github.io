@@ -486,6 +486,61 @@ title: The Garden
     // Check for test mode (for palette visibility only)
     var urlParams = new URLSearchParams(window.location.search);
     var isTestMode = urlParams.has('test');
+
+    // Save/Load functions for persistence
+    function saveGame() {
+      var gameState = {
+        seeds: seeds,
+        money: money,
+        pots: pots,
+        hasAutoHarvester: hasAutoHarvester,
+        hasAutoPlanter: hasAutoPlanter,
+        seedBuyerCount: seedBuyerCount,
+        individualSeedsPurchased: individualSeedsPurchased,
+        forceMinimal: forceMinimal,
+        lastSaved: Date.now()
+      };
+      localStorage.setItem('gardenGameState', JSON.stringify(gameState));
+    }
+
+    function loadGame() {
+      try {
+        var saved = localStorage.getItem('gardenGameState');
+        if (saved) {
+          var gameState = JSON.parse(saved);
+
+          // Restore basic state
+          seeds = gameState.seeds || 1;
+          money = gameState.money || 0;
+          hasAutoHarvester = gameState.hasAutoHarvester || false;
+          hasAutoPlanter = gameState.hasAutoPlanter || false;
+          seedBuyerCount = gameState.seedBuyerCount || 0;
+          individualSeedsPurchased = gameState.individualSeedsPurchased || 0;
+          forceMinimal = gameState.forceMinimal || false;
+
+          // Restore pots with proper structure
+          if (gameState.pots && gameState.pots.length > 0) {
+            pots = gameState.pots.map(function(pot, index) {
+              return {
+                id: index,
+                planted: pot.planted || false,
+                growth: pot.growth || 0,
+                plantTime: pot.plantTime
+              };
+            });
+          }
+
+          // Reset seed buyer timer state
+          lastSeedBuyerUpdate = Date.now();
+          seedBuyerRemainder = 0.0;
+
+          return true; // Successfully loaded
+        }
+      } catch (e) {
+        console.error('Failed to load game state:', e);
+      }
+      return false; // No save found or error
+    }
     var hasAutoHarvester = false;
     var hasAutoPlanter = false;
     var seedBuyerCount = 0;
@@ -1085,6 +1140,7 @@ title: The Garden
       document.getElementById('test-reset-game').addEventListener('click', function(e) {
         e.stopPropagation();
         if (confirm('Reset all game progress?')) {
+          localStorage.removeItem('gardenGameState');
           location.reload();
         }
       });
@@ -1113,9 +1169,18 @@ title: The Garden
       updateControls();
     }, 150);
 
+    // Load saved game state
+    loadGame();
+
     // Initial render
     renderPots();
     update();
     updateControls();
+
+    // Auto-save every 5 seconds
+    setInterval(saveGame, 5000);
+
+    // Save on page unload
+    window.addEventListener('beforeunload', saveGame);
   })();
 </script>
