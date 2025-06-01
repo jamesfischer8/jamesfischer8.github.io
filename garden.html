@@ -486,13 +486,6 @@ title: The Garden
     // Check for test mode (for palette visibility only)
     var urlParams = new URLSearchParams(window.location.search);
     var isTestMode = urlParams.has('test');
-    var growthDuration = CONFIG.GROWTH_DURATION;
-    var salePrice = CONFIG.SALE_PRICE;
-    var seedCost = CONFIG.SEED_COST;
-    var basePotCost = CONFIG.POT_COST;
-    var autoHarvesterCost = CONFIG.AUTO_HARVESTER_COST;
-    var autoPlanterCost = CONFIG.AUTO_PLANTER_COST;
-    var baseAutoSeederCost = CONFIG.AUTO_SEEDER_BASE_COST;
     var hasAutoHarvester = false;
     var hasAutoPlanter = false;
     var seedBuyerCount = 0;
@@ -525,12 +518,12 @@ title: The Garden
     };
 
     function getNextSeedBuyerCost() {
-      return Math.ceil(baseAutoSeederCost * Math.pow(CONFIG.SEED_BUYER_SCALING, seedBuyerCount));
+      return Math.ceil(CONFIG.AUTO_SEEDER_BASE_COST * Math.pow(CONFIG.SEED_BUYER_SCALING, seedBuyerCount));
     }
 
     function getCurrentPotCost() {
       var scalingFactor = Math.floor(pots.length / CONFIG.POT_SCALING_THRESHOLD);
-      return Math.floor(basePotCost * Math.pow(CONFIG.POT_SCALING_FACTOR, scalingFactor));
+      return Math.floor(CONFIG.POT_COST * Math.pow(CONFIG.POT_SCALING_FACTOR, scalingFactor));
     }
 
     function hasGrowingPlants() {
@@ -577,7 +570,7 @@ title: The Garden
       potDiv.className = 'pot';
 
       var plantButton = hasAutoPlanter ? '' : `<button class="plant-btn" data-pot="${pot.id}">Plant seed</button>`;
-      var harvestButton = hasAutoHarvester ? '' : `<button class="harvest-btn" data-pot="${pot.id}" disabled>Harvest ($${formatMoney(salePrice)})</button>`;
+      var harvestButton = hasAutoHarvester ? '' : `<button class="harvest-btn" data-pot="${pot.id}" disabled>Harvest ($${formatMoney(CONFIG.SALE_PRICE)})</button>`;
 
       potDiv.innerHTML = `
         <h3>Pot ${pot.id + 1} <span class="plant-visual" data-pot="${pot.id}"></span></h3>
@@ -665,7 +658,7 @@ title: The Garden
 
         pot.planted = false;
         pot.growth = 0;
-        money += salePrice;
+        money += CONFIG.SALE_PRICE;
         update();
         updateControls();
 
@@ -803,15 +796,15 @@ title: The Garden
     function updateControls() {
       updateButtonState(
         buySeedBtn,
-        '<span>Buy seed ($' + formatMoney(seedCost) + ')</span>',
-        !testFreeMode && money < seedCost && !(money === 0 && seeds === 0 && !hasGrowingPlants()),
+        '<span>Buy seed ($' + formatMoney(CONFIG.SEED_COST) + ')</span>',
+        !testFreeMode && money < CONFIG.SEED_COST && !(money === 0 && seeds === 0 && !hasGrowingPlants()),
         'seedBtn'
       );
 
       // Show "buy 10 seeds" button after buying threshold individual seeds
       if (individualSeedsPurchased >= CONFIG.BULK_SEED_UNLOCK) {
         buy10SeedsBtn.classList.remove('hidden');
-        var buy10Cost = seedCost * 10;
+        var buy10Cost = CONFIG.SEED_COST * 10;
         updateButtonState(
           buy10SeedsBtn,
           '<span>Buy 10 seeds ($' + formatMoney(buy10Cost) + ')</span>',
@@ -831,15 +824,15 @@ title: The Garden
 
       updateButtonState(
         buyAutoHarvesterBtn,
-        hasAutoHarvester ? '<span>Auto-Harvester (Owned)</span>' : '<span>Auto-Harvester ($' + formatMoney(autoHarvesterCost) + ')</span>',
-        hasAutoHarvester || (!testFreeMode && money < autoHarvesterCost),
+        hasAutoHarvester ? '<span>Auto-Harvester (Owned)</span>' : '<span>Auto-Harvester ($' + formatMoney(CONFIG.AUTO_HARVESTER_COST) + ')</span>',
+        hasAutoHarvester || (!testFreeMode && money < CONFIG.AUTO_HARVESTER_COST),
         'autoHarvesterBtn'
       );
 
       updateButtonState(
         buyAutoPlanterBtn,
-        hasAutoPlanter ? '<span>Auto-Planter (Owned)</span>' : '<span>Auto-Planter ($' + formatMoney(autoPlanterCost) + ')</span>',
-        hasAutoPlanter || (!testFreeMode && money < autoPlanterCost),
+        hasAutoPlanter ? '<span>Auto-Planter (Owned)</span>' : '<span>Auto-Planter ($' + formatMoney(CONFIG.AUTO_PLANTER_COST) + ')</span>',
+        hasAutoPlanter || (!testFreeMode && money < CONFIG.AUTO_PLANTER_COST),
         'autoPlanterBtn'
       );
 
@@ -866,7 +859,7 @@ title: The Garden
     setInterval(function() {
       pots.forEach(function(pot) {
         if (pot.planted && pot.growth < 100) {
-          var effectiveGrowthDuration = testFastGrowth ? growthDuration / 10 : growthDuration;
+          var effectiveGrowthDuration = testFastGrowth ? CONFIG.GROWTH_DURATION / 10 : CONFIG.GROWTH_DURATION;
           pot.growth = (Date.now() - pot.plantTime) / effectiveGrowthDuration * 100;
           if (pot.growth > 100) pot.growth = 100;
         }
@@ -924,17 +917,17 @@ title: The Garden
         // Buy whole seeds from the accumulated remainder
         var wholeSeedsToBuy = Math.floor(seedBuyerRemainder);
         if (wholeSeedsToBuy > 0) {
-          var totalCost = wholeSeedsToBuy * seedCost;
+          var totalCost = wholeSeedsToBuy * CONFIG.SEED_COST;
           if (money >= totalCost) {
             // Can afford all whole seeds
             money -= totalCost;
             seeds += wholeSeedsToBuy;
             seedBuyerRemainder -= wholeSeedsToBuy; // Keep the fractional part
             update();
-          } else if (money >= seedCost) {
+          } else if (money >= CONFIG.SEED_COST) {
             // Can afford some seeds
-            var affordableSeeds = Math.floor(money / seedCost);
-            money -= affordableSeeds * seedCost;
+            var affordableSeeds = Math.floor(money / CONFIG.SEED_COST);
+            money -= affordableSeeds * CONFIG.SEED_COST;
             seeds += affordableSeeds;
             seedBuyerRemainder -= affordableSeeds; // Keep the fractional part
             update();
@@ -948,9 +941,9 @@ title: The Garden
 
       buySeedBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('Buy seed clicked directly - Money:', money, 'Cost:', seedCost, 'Disabled:', this.disabled);
-        if (!this.disabled && (testFreeMode || money >= seedCost || (money === 0 && seeds === 0 && !hasGrowingPlants()))) {
-          if (!testFreeMode) money -= seedCost;
+        console.log('Buy seed clicked directly - Money:', money, 'Cost:', CONFIG.SEED_COST, 'Disabled:', this.disabled);
+        if (!this.disabled && (testFreeMode || money >= CONFIG.SEED_COST || (money === 0 && seeds === 0 && !hasGrowingPlants()))) {
+          if (!testFreeMode) money -= CONFIG.SEED_COST;
           seeds++;
           individualSeedsPurchased++; // Track individual seed purchases
           console.log('Seed purchased - New money:', money, 'New seeds:', seeds, 'Individual seeds purchased:', individualSeedsPurchased);
@@ -960,7 +953,7 @@ title: The Garden
 
       buy10SeedsBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        var buy10Cost = seedCost * 10;
+        var buy10Cost = CONFIG.SEED_COST * 10;
         console.log('Buy 10 seeds clicked directly - Money:', money, 'Cost:', buy10Cost, 'Disabled:', this.disabled);
         if (!this.disabled && (testFreeMode || money >= buy10Cost)) {
           if (!testFreeMode) money -= buy10Cost;
@@ -992,8 +985,8 @@ title: The Garden
       buyAutoHarvesterBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         console.log('Auto-harvester clicked directly');
-        if (!this.disabled && (testFreeMode || money >= autoHarvesterCost) && !hasAutoHarvester) {
-          if (!testFreeMode) money -= autoHarvesterCost;
+        if (!this.disabled && (testFreeMode || money >= CONFIG.AUTO_HARVESTER_COST) && !hasAutoHarvester) {
+          if (!testFreeMode) money -= CONFIG.AUTO_HARVESTER_COST;
           hasAutoHarvester = true;
           updatePotButtons(); // Update button visibility and animate compactness
           update();
@@ -1003,8 +996,8 @@ title: The Garden
       buyAutoPlanterBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         console.log('Auto-planter clicked directly');
-        if (!this.disabled && (testFreeMode || money >= autoPlanterCost) && !hasAutoPlanter) {
-          if (!testFreeMode) money -= autoPlanterCost;
+        if (!this.disabled && (testFreeMode || money >= CONFIG.AUTO_PLANTER_COST) && !hasAutoPlanter) {
+          if (!testFreeMode) money -= CONFIG.AUTO_PLANTER_COST;
           hasAutoPlanter = true;
           updatePotButtons(); // Update button visibility and animate compactness
           update();
