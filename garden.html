@@ -442,6 +442,21 @@ title: The Garden
 
 <script>
   (function() {
+    // ===== GAME CONFIGURATION =====
+    var CONFIG = {
+      GROWTH_DURATION: 15000,
+      SALE_PRICE: 50,
+      SEED_COST: 1,
+      POT_COST: 100,
+      AUTO_HARVESTER_COST: 1000,
+      AUTO_PLANTER_COST: 200,
+      AUTO_SEEDER_BASE_COST: 10000,
+      SEED_BUYER_SCALING: 1.05,
+      POT_SCALING_FACTOR: 1.5,
+      POT_SCALING_THRESHOLD: 6,
+      BULK_SEED_UNLOCK: 10
+    };
+
     var moneyEl = document.getElementById('money');
     var seedsEl = document.getElementById('seeds');
     var potCountEl = document.getElementById('pot-count');
@@ -473,13 +488,13 @@ title: The Garden
     var testFactor = parseFloat(urlParams.get('test')) || 0;
     var isTestMode = testFactor > 0;
     var costDivisor = isTestMode ? Math.pow(2, testFactor) : 1;
-    var growthDuration = isTestMode ? 2250 : 15000; // Fast growth when test=true
-    var salePrice = 50;
-    var seedCost = Math.ceil(1 / costDivisor);
-    var basePotCost = Math.ceil(100 / costDivisor);
-    var autoHarvesterCost = Math.ceil(1000 / costDivisor);
-    var autoPlanterCost = Math.ceil(200 / costDivisor);
-    var baseAutoSeederCost = Math.ceil(10000 / costDivisor);
+    var growthDuration = isTestMode ? 2250 : CONFIG.GROWTH_DURATION;
+    var salePrice = CONFIG.SALE_PRICE;
+    var seedCost = Math.ceil(CONFIG.SEED_COST / costDivisor);
+    var basePotCost = Math.ceil(CONFIG.POT_COST / costDivisor);
+    var autoHarvesterCost = Math.ceil(CONFIG.AUTO_HARVESTER_COST / costDivisor);
+    var autoPlanterCost = Math.ceil(CONFIG.AUTO_PLANTER_COST / costDivisor);
+    var baseAutoSeederCost = Math.ceil(CONFIG.AUTO_SEEDER_BASE_COST / costDivisor);
     var hasAutoHarvester = false;
     var hasAutoPlanter = false;
     var seedBuyerCount = 0;
@@ -512,12 +527,12 @@ title: The Garden
     };
 
     function getNextSeedBuyerCost() {
-      return Math.ceil(baseAutoSeederCost * Math.pow(1.05, seedBuyerCount));
+      return Math.ceil(baseAutoSeederCost * Math.pow(CONFIG.SEED_BUYER_SCALING, seedBuyerCount));
     }
 
     function getCurrentPotCost() {
-      var scalingFactor = Math.floor(pots.length / 6);
-      return Math.floor(basePotCost * Math.pow(1.5, scalingFactor));
+      var scalingFactor = Math.floor(pots.length / CONFIG.POT_SCALING_THRESHOLD);
+      return Math.floor(basePotCost * Math.pow(CONFIG.POT_SCALING_FACTOR, scalingFactor));
     }
 
     function hasGrowingPlants() {
@@ -795,8 +810,8 @@ title: The Garden
         'seedBtn'
       );
 
-      // Show "buy 10 seeds" button after buying 10 individual seeds
-      if (individualSeedsPurchased >= 10) {
+      // Show "buy 10 seeds" button after buying threshold individual seeds
+      if (individualSeedsPurchased >= CONFIG.BULK_SEED_UNLOCK) {
         buy10SeedsBtn.classList.remove('hidden');
         var buy10Cost = seedCost * 10;
         updateButtonState(
