@@ -510,7 +510,7 @@ title: The Garden
           var gameState = JSON.parse(saved);
 
           // Restore basic state
-          seeds = gameState.seeds || 1;
+          seeds = gameState.seeds !== undefined ? gameState.seeds : 1;
           money = gameState.money || 0;
           hasAutoHarvester = gameState.hasAutoHarvester || false;
           hasAutoPlanter = gameState.hasAutoPlanter || false;
