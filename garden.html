@@ -8,28 +8,52 @@ title: The Garden
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 
 <style>
-  /* Earthy mystical theme */
+  /* Mobile-first approach: default styles for mobile */
+
+  /* Base styles */
   body {
     background: linear-gradient(135deg, #2c2416 0%, #3d3426 50%, #2c2416 100%);
     color: #d4c4a0;
     font-family: 'Crimson Text', 'Times New Roman', serif;
     min-height: 100vh;
   }
+
+  /* Page title */
+  .page-title {
+    text-align: center;
+    color: #88b04b;
+    font-size: 28px;
+    margin-bottom: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  }
+
+  /* Utility classes */
+  .hidden {
+    display: none !important;
+  }
+
+  .test-only {
+    background: #444;
+    border-color: #666;
+  }
+  /* Game container - mobile first */
   #game {
-    margin-top: 50px;
+    margin-top: 20px;
     padding: 25px;
     background: #1a1611;
     border: 3px solid #4a3f2a;
     border-radius: 8px;
-    max-width: 1000px;
     margin-left: auto;
     margin-right: auto;
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+    gap: 10px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 3px rgba(74, 63, 42, 0.3);
   }
+  /* Sidebar - mobile first */
   #sidebar {
-    flex: 0 0 250px;
     background: #252019;
     border: 2px solid #5a4d35;
     border-radius: 6px;
@@ -41,13 +65,14 @@ title: The Garden
     flex: 1;
     text-align: center;
   }
+  /* Stats - mobile first */
   #stats {
     margin-bottom: 20px;
     font-size: 18px;
-    text-align: left;
+    text-align: center;
   }
   #inventory {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
   #inventory h3 {
     margin: 0 0 12px 0;
@@ -95,7 +120,7 @@ title: The Garden
     flex-wrap: wrap;
     justify-content: center;
     gap: 15px;
-    margin: 20px 0;
+    margin: 10px 0;
     transition: gap 0.6s ease;
   }
   #pots-container.compact-mode {
@@ -105,7 +130,8 @@ title: The Garden
     /* No container changes - inherit from compact-mode */
   }
   #pots-container.compact-mode .pot {
-    min-width: 160px;
+    min-width: calc(50% - 7.5px);
+    max-width: calc(50% - 7.5px);
     padding: 12px;
   }
   #pots-container.compact-mode .pot h3 {
@@ -136,12 +162,14 @@ title: The Garden
     height: 0;
     margin: 0;
   }
+  /* Pot - mobile first */
   .pot {
     border: 2px solid #5a4d35;
     border-radius: 6px;
     padding: 18px;
     background: linear-gradient(135deg, #2a2318, #1f1c14);
-    min-width: 220px;
+    min-width: calc(50% - 7.5px);
+    max-width: calc(50% - 7.5px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(90, 77, 53, 0.2);
     transition: min-width 0.6s ease, padding 0.6s ease, border-width 0.6s ease, border-color 0.6s ease, background 0.6s ease, box-shadow 0.6s ease;
   }
@@ -183,7 +211,8 @@ title: The Garden
   }
   .pot-actions {
     display: flex;
-    gap: 8px;
+    flex-direction: column;
+    gap: 4px;
     margin-top: 8px;
     transition: opacity 0.6s ease, height 0.6s ease;
   }
@@ -204,33 +233,80 @@ title: The Garden
   #controls {
     border-top: 1px solid #88b04b;
     padding-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
   }
   #controls button {
-    display: block;
-    width: 100%;
-    margin: 5px 0;
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+    margin: 0;
+    font-size: 14px;
+    padding: 8px 6px;
   }
-  @media (max-width: 768px) {
+  /* Desktop styles */
+  @media (min-width: 769px) {
     #game {
-      flex-direction: column;
+      max-width: 1000px;
+      flex-direction: row;
+      gap: 20px;
+      margin-top: 50px;
     }
     #sidebar {
-      flex: none;
+      flex: 0 0 250px;
     }
     #stats {
-      text-align: center;
+      text-align: left;
+    }
+    .pot {
+      min-width: 220px;
+      max-width: none;
+    }
+    #pots-container.compact-mode .pot {
+      min-width: 160px;
+      max-width: none;
+    }
+    .pot button {
+      font-size: 14px;
+      padding: 6px 12px;
+    }
+    .pot-actions {
+      flex-direction: row;
+      gap: 8px;
+    }
+    #pots-container {
+      margin: 20px 0;
+    }
+    .page-title {
+      margin-bottom: 30px;
+    }
+    #inventory {
+      margin-bottom: 20px;
+    }
+    #controls {
+      display: block;
+      gap: unset;
+    }
+    #controls button {
+      display: block;
+      width: 100%;
+      margin: 5px 0;
+      font-size: 16px;
+      padding: 10px 18px;
+      flex: unset;
+      min-width: unset;
     }
   }
 </style>
 
-<h1 style="text-align:center; color: #88b04b; font-size: 28px; margin-bottom: 30px; font-weight: 700; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);">The Garden</h1>
+<h1 class="page-title">The Garden</h1>
 <div id="game">
   <div id="sidebar">
     <div id="stats">
       Money: <span id="money">$0</span> <br>
       Seeds: <span id="seeds">1</span> <br>
       Pots: <span id="pot-count">1</span> <br>
-      <span id="seeds-per-sec-line" style="display: none;">Seeds/sec: <span id="seed-buyer-count">0</span> <br></span>
+      <span id="seeds-per-sec-line" class="hidden">Seeds/sec: <span id="seed-buyer-count">0</span> <br></span>
     </div>
 
     <div id="inventory">
@@ -240,8 +316,8 @@ title: The Garden
         <button id="buy-pot" disabled>Buy pot ($100)</button>
         <button id="buy-auto-planter" disabled>Auto-Planter ($0)</button>
         <button id="buy-auto-harvester" disabled>Auto-Harvester ($0)</button>
-        <button id="buy-auto-seeder" disabled style="display: none;">Seed Buyer ($0)</button>
-        <button id="toggle-minimal" style="background: #444; border-color: #666; display: none;">Toggle Minimal</button>
+        <button id="buy-auto-seeder" disabled class="hidden">Seed Buyer ($0)</button>
+        <button id="toggle-minimal" class="test-only hidden">Toggle Minimal</button>
       </div>
     </div>
   </div>
@@ -499,7 +575,11 @@ title: The Garden
       if (uiState.seedBuyerCount !== value) {
         uiState.seedBuyerCount = value;
         seedBuyerCountEl.textContent = value;
-        seedsPerSecLineEl.style.display = value > 0 ? 'inline' : 'none';
+        if (value > 0) {
+          seedsPerSecLineEl.classList.remove('hidden');
+        } else {
+          seedsPerSecLineEl.classList.add('hidden');
+        }
       }
     }
 
@@ -619,7 +699,7 @@ title: The Garden
 
       // Show seed buyer only after auto-planter is purchased
       if (hasAutoPlanter) {
-        buyAutoSeederBtn.style.display = 'block';
+        buyAutoSeederBtn.classList.remove('hidden');
         var nextCost = getNextSeedBuyerCost();
         var buttonText = seedBuyerCount > 0
           ? '<span>Seed Buyer #' + (seedBuyerCount + 1) + ' ($' + formatMoney(nextCost) + ')</span>'
@@ -631,7 +711,7 @@ title: The Garden
           'autoSeederBtn'
         );
       } else {
-        buyAutoSeederBtn.style.display = 'none';
+        buyAutoSeederBtn.classList.add('hidden');
       }
     }
 
@@ -793,7 +873,7 @@ title: The Garden
 
     // Show toggle button only in test mode
     if (isTestMode) {
-      toggleMinimalBtn.style.display = 'block';
+      toggleMinimalBtn.classList.remove('hidden');
     }
 
     // Attach direct listeners after a delay
