@@ -426,6 +426,7 @@ title: The Garden
       <h3>Shop</h3>
       <div id="controls">
         <button id="buy-seed" disabled>Buy seed ($1)</button>
+        <button id="buy-10-seeds" disabled class="hidden">Buy 10 seeds ($10)</button>
         <button id="buy-pot" disabled>Buy pot ($100)</button>
         <button id="buy-auto-planter" disabled>Auto-Planter ($0)</button>
         <button id="buy-auto-harvester" disabled>Auto-Harvester ($0)</button>
@@ -451,6 +452,7 @@ title: The Garden
     var buyAutoHarvesterBtn = document.getElementById('buy-auto-harvester');
     var buyAutoPlanterBtn = document.getElementById('buy-auto-planter');
     var buyAutoSeederBtn = document.getElementById('buy-auto-seeder');
+    var buy10SeedsBtn = document.getElementById('buy-10-seeds');
     var testPalette = document.getElementById('test-palette');
     var potsContainer = document.getElementById('pots-container');
 
@@ -486,6 +488,7 @@ title: The Garden
     var forceMinimal = false; // Manual toggle override
     var testFreeMode = false; // Test mode for free purchases
     var testFastGrowth = false; // Test mode for fast growth
+    var individualSeedsPurchased = 0; // Track individual seed purchases
 
     // UI state tracking
     var uiState = {
@@ -498,11 +501,13 @@ title: The Garden
       autoHarvesterBtnText: '',
       autoPlanterBtnText: '',
       autoSeederBtnText: '',
+      buy10SeedsBtnText: '',
       seedBtnDisabled: null,
       potBtnDisabled: null,
       autoHarvesterBtnDisabled: null,
       autoPlanterBtnDisabled: null,
       autoSeederBtnDisabled: null,
+      buy10SeedsBtnDisabled: null,
       pots: {} // Track pot UI states
     };
 
@@ -790,6 +795,20 @@ title: The Garden
         'seedBtn'
       );
 
+      // Show "buy 10 seeds" button after buying 10 individual seeds
+      if (individualSeedsPurchased >= 10) {
+        buy10SeedsBtn.classList.remove('hidden');
+        var buy10Cost = seedCost * 10;
+        updateButtonState(
+          buy10SeedsBtn,
+          '<span>Buy 10 seeds ($' + formatMoney(buy10Cost) + ')</span>',
+          !testFreeMode && money < buy10Cost,
+          'buy10SeedsBtn'
+        );
+      } else {
+        buy10SeedsBtn.classList.add('hidden');
+      }
+
       updateButtonState(
         buyPotBtn,
         '<span>Buy pot ($' + formatMoney(getCurrentPotCost()) + ')</span>',
@@ -920,7 +939,20 @@ title: The Garden
         if (!this.disabled && (testFreeMode || money >= seedCost || (money === 0 && seeds === 0 && !hasGrowingPlants()))) {
           if (!testFreeMode) money -= seedCost;
           seeds++;
-          console.log('Seed purchased - New money:', money, 'New seeds:', seeds);
+          individualSeedsPurchased++; // Track individual seed purchases
+          console.log('Seed purchased - New money:', money, 'New seeds:', seeds, 'Individual seeds purchased:', individualSeedsPurchased);
+          update();
+        }
+      });
+
+      buy10SeedsBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var buy10Cost = seedCost * 10;
+        console.log('Buy 10 seeds clicked directly - Money:', money, 'Cost:', buy10Cost, 'Disabled:', this.disabled);
+        if (!this.disabled && (testFreeMode || money >= buy10Cost)) {
+          if (!testFreeMode) money -= buy10Cost;
+          seeds += 10;
+          console.log('10 seeds purchased - New money:', money, 'New seeds:', seeds);
           update();
         }
       });
@@ -1065,6 +1097,11 @@ title: The Garden
 
     // Attach direct listeners after a delay
     setTimeout(attachDirectListeners, 100);
+
+    // Call updateControls initially to handle the buy 10 seeds button visibility
+    setTimeout(function() {
+      updateControls();
+    }, 150);
 
     // Initial render
     renderPots();
