@@ -937,16 +937,12 @@ title: The Garden
     }, 16);
 
     function attachDirectListeners() {
-      console.log('Attaching direct button listeners...');
-
       buySeedBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('Buy seed clicked directly - Money:', money, 'Cost:', CONFIG.SEED_COST, 'Disabled:', this.disabled);
         if (!this.disabled && (testFreeMode || money >= CONFIG.SEED_COST || (money === 0 && seeds === 0 && !hasGrowingPlants()))) {
           if (!testFreeMode) money -= CONFIG.SEED_COST;
           seeds++;
           individualSeedsPurchased++; // Track individual seed purchases
-          console.log('Seed purchased - New money:', money, 'New seeds:', seeds, 'Individual seeds purchased:', individualSeedsPurchased);
           update();
         }
       });
@@ -954,18 +950,15 @@ title: The Garden
       buy10SeedsBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         var buy10Cost = CONFIG.SEED_COST * 10;
-        console.log('Buy 10 seeds clicked directly - Money:', money, 'Cost:', buy10Cost, 'Disabled:', this.disabled);
         if (!this.disabled && (testFreeMode || money >= buy10Cost)) {
           if (!testFreeMode) money -= buy10Cost;
           seeds += 10;
-          console.log('10 seeds purchased - New money:', money, 'New seeds:', seeds);
           update();
         }
       });
 
       buyPotBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('Buy pot clicked directly');
         var currentPotCost = getCurrentPotCost();
         if (!this.disabled && (testFreeMode || money >= currentPotCost)) {
           if (!testFreeMode) money -= currentPotCost;
@@ -984,7 +977,6 @@ title: The Garden
 
       buyAutoHarvesterBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('Auto-harvester clicked directly');
         if (!this.disabled && (testFreeMode || money >= CONFIG.AUTO_HARVESTER_COST) && !hasAutoHarvester) {
           if (!testFreeMode) money -= CONFIG.AUTO_HARVESTER_COST;
           hasAutoHarvester = true;
@@ -995,7 +987,6 @@ title: The Garden
 
       buyAutoPlanterBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('Auto-planter clicked directly');
         if (!this.disabled && (testFreeMode || money >= CONFIG.AUTO_PLANTER_COST) && !hasAutoPlanter) {
           if (!testFreeMode) money -= CONFIG.AUTO_PLANTER_COST;
           hasAutoPlanter = true;
@@ -1006,7 +997,6 @@ title: The Garden
 
       buyAutoSeederBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('Seed buyer clicked directly');
         var nextCost = getNextSeedBuyerCost();
         if (!this.disabled && (testFreeMode || money >= nextCost)) {
           if (!testFreeMode) money -= nextCost;
