@@ -483,18 +483,16 @@ title: The Garden
       }
     ];
 
-    // Check for test mode
+    // Check for test mode (for palette visibility only)
     var urlParams = new URLSearchParams(window.location.search);
-    var testFactor = parseFloat(urlParams.get('test')) || 0;
-    var isTestMode = testFactor > 0;
-    var costDivisor = isTestMode ? Math.pow(2, testFactor) : 1;
-    var growthDuration = isTestMode ? 2250 : CONFIG.GROWTH_DURATION;
+    var isTestMode = urlParams.has('test');
+    var growthDuration = CONFIG.GROWTH_DURATION;
     var salePrice = CONFIG.SALE_PRICE;
-    var seedCost = Math.ceil(CONFIG.SEED_COST / costDivisor);
-    var basePotCost = Math.ceil(CONFIG.POT_COST / costDivisor);
-    var autoHarvesterCost = Math.ceil(CONFIG.AUTO_HARVESTER_COST / costDivisor);
-    var autoPlanterCost = Math.ceil(CONFIG.AUTO_PLANTER_COST / costDivisor);
-    var baseAutoSeederCost = Math.ceil(CONFIG.AUTO_SEEDER_BASE_COST / costDivisor);
+    var seedCost = CONFIG.SEED_COST;
+    var basePotCost = CONFIG.POT_COST;
+    var autoHarvesterCost = CONFIG.AUTO_HARVESTER_COST;
+    var autoPlanterCost = CONFIG.AUTO_PLANTER_COST;
+    var baseAutoSeederCost = CONFIG.AUTO_SEEDER_BASE_COST;
     var hasAutoHarvester = false;
     var hasAutoPlanter = false;
     var seedBuyerCount = 0;
