@@ -518,15 +518,27 @@ title: The Garden
           individualSeedsPurchased = gameState.individualSeedsPurchased || 0;
           forceMinimal = gameState.forceMinimal || false;
 
-          // Restore pots with proper structure
+          // Restore pots with proper structure and simulate time progression
           if (gameState.pots && gameState.pots.length > 0) {
+            var currentTime = Date.now();
+            var timeSinceLastSave = gameState.lastSaved ? currentTime - gameState.lastSaved : 0;
+
             pots = gameState.pots.map(function(pot, index) {
-              return {
+              var newPot = {
                 id: index,
                 planted: pot.planted || false,
                 growth: pot.growth || 0,
                 plantTime: pot.plantTime
               };
+
+              // If plant was growing when saved, continue its growth
+              if (newPot.planted && newPot.plantTime && newPot.growth < 100) {
+                var totalGrowthTime = currentTime - newPot.plantTime;
+                newPot.growth = (totalGrowthTime / CONFIG.GROWTH_DURATION) * 100;
+                if (newPot.growth > 100) newPot.growth = 100;
+              }
+
+              return newPot;
             });
           }
 
