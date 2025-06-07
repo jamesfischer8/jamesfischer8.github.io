@@ -1,4 +1,14 @@
 # Development
+Install the Ruby gems first:
+```
+bundle install
+```
+
+Install wrangler globally as well:
+```
+npm install -g wrangler
+```
+
 For working on the static site, run:
 ```
 bundle exec jekyll serve
