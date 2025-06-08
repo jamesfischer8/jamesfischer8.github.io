@@ -27,18 +27,24 @@ async function loadEntries() {
   const data = await res.json();
   const entriesDiv = document.getElementById('entries');
   entriesDiv.innerHTML = '';
-  data.forEach(e => { entriesDiv.innerHTML = entryHtml(e) + "\n" + entriesDiv.innerHTML; });
+  data.forEach(e => {
+    entriesDiv.innerHTML = entryHtml(e) + "\n" + entriesDiv.innerHTML;
+  });
 }
 
 function entryHtml(e) {
   const ts = new Date(e.timestamp);
-  return `<div class="entry" data-key="${e.key}">
+  const classes = e.deleted ? 'entry deleted' : 'entry';
+  const buttons = e.deleted
+    ? '<button class="undelete">Un-delete</button>'
+    : '<button class="delete">Delete</button>';
+  return `<div class="${classes}" data-key="${e.key}">
     <div class="name-timestamp">
       <div class="name">${escapeHtml(e.name)}</div>
       <div class="timestamp">${ts.toLocaleDateString()}</div>
     </div>
     <p class="remarks">${escapeHtml(e.remarks)}</p>
-    <button class="delete">Delete</button>
+    ${buttons}
   </div>`;
 }
 
@@ -52,20 +58,33 @@ function escapeHtml(u) {
 }
 
 document.getElementById('entries').addEventListener('click', async e => {
-  if (!e.target.classList.contains('delete')) return;
   const div = e.target.closest('.entry');
+  if (!div) return;
   const key = div.getAttribute('data-key');
-  if (!confirm('Delete this entry?')) return;
-  const res = await fetch('/api/guestbook-admin', {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key, secret: adminSecret })
-  });
-  if (res.ok) div.remove();
-  else if (res.status === 403) {
-    localStorage.removeItem('gbAdminSecret');
-    alert('Unauthorized: Invalid admin secret. Please refresh the page to re-enter.');
-  } else alert('Failed to delete');
+
+  if (e.target.classList.contains('delete')) {
+    const res = await fetch('/api/guestbook-admin', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, secret: adminSecret })
+    });
+    if (res.ok) loadEntries();
+    else if (res.status === 403) {
+      localStorage.removeItem('gbAdminSecret');
+      alert('Unauthorized: Invalid admin secret. Please refresh the page to re-enter.');
+    } else alert('Failed to delete');
+  } else if (e.target.classList.contains('undelete')) {
+    const res = await fetch('/api/guestbook-admin', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, secret: adminSecret })
+    });
+    if (res.ok) loadEntries();
+    else if (res.status === 403) {
+      localStorage.removeItem('gbAdminSecret');
+      alert('Unauthorized: Invalid admin secret. Please refresh the page to re-enter.');
+    } else alert('Failed to un-delete');
+  }
 });
 
 loadEntries();
