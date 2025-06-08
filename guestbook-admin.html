@@ -34,10 +34,16 @@ async function loadEntries() {
 
 function entryHtml(e) {
   const ts = new Date(e.timestamp);
-  const classes = e.deleted ? 'entry deleted' : 'entry';
+  const classes = [
+    'entry',
+    e.deleted ? 'deleted' : '',
+    e.needsApproval ? 'needs-approval' : ''
+  ].join(' ').trim();
   const buttons = e.deleted
     ? '<button class="undelete">Un-delete</button>'
-    : '<button class="delete">Delete</button>';
+    : e.needsApproval
+      ? '<button class="approve">Approve</button> <button class="delete">Delete</button>'
+      : '<button class="delete">Delete</button>';
   return `<div class="${classes}" data-key="${e.key}">
     <div class="name-timestamp">
       <div class="name">${escapeHtml(e.name)}</div>
@@ -84,6 +90,17 @@ document.getElementById('entries').addEventListener('click', async e => {
       localStorage.removeItem('gbAdminSecret');
       alert('Unauthorized: Invalid admin secret. Please refresh the page to re-enter.');
     } else alert('Failed to un-delete');
+  } else if (e.target.classList.contains('approve')) {
+    const res = await fetch('/api/guestbook-admin', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, secret: adminSecret, approve: true })
+    });
+    if (res.ok) loadEntries();
+    else if (res.status === 403) {
+      localStorage.removeItem('gbAdminSecret');
+      alert('Unauthorized: Invalid admin secret. Please refresh the page to re-enter.');
+    } else alert('Failed to approve');
   }
 });
 

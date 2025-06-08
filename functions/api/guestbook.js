@@ -1,3 +1,17 @@
+async function hasPriorPostToday(ip, env, date) {
+  const today = date.toISOString().slice(0, 10);
+  const list = await env.GUESTBOOK.list();
+  for (const { name } of list.keys) {
+    const raw = await env.GUESTBOOK.get(name);
+    if (!raw) continue;
+    const entry = JSON.parse(raw);
+    if (entry.ip === ip && entry.timestamp?.slice(0, 10) === today) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export async function onRequestGet({ request, env }) {
   try {
     const ip = request.headers.get('CF-Connecting-IP') || null;
@@ -11,10 +25,10 @@ export async function onRequestGet({ request, env }) {
       })
     );
 
-    // Filter out null entries, soft-deleted entries, remove IP
+    // Filter out null entries, soft-deleted or unapproved entries, remove IP
     const publicEntries = entries
       .filter(Boolean)
-      .filter(entry => !entry.deleted)
+      .filter(entry => !entry.deleted && !entry.needsApproval)
       .map(entry => {
         const { name, remarks, timestamp, ip: entryIp } = entry;
         const ipMatch = ip === entryIp;
@@ -77,12 +91,17 @@ export async function onRequestPost({ request, env }) {
     // Get request ip
     const ip = request.headers.get('CF-Connecting-IP') || null;
 
+    const needsApproval = ip
+      ? await hasPriorPostToday(ip, env, date)
+      : false;
+
     // Store the entry in KV
     const newEntry = {
       name: entry.name,
       remarks: entry.remarks,
       timestamp: date.toISOString(),
       ip,
+      needsApproval,
     };
     await env.GUESTBOOK.put(key, JSON.stringify(newEntry));
 

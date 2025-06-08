@@ -122,4 +122,8 @@ a, a:visited {
   .entry.deleted {
     opacity: 0.5;
   }
+
+  .entry.needs-approval {
+    background: #fff2be;
+  }
 }
