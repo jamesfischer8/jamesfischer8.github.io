@@ -100,6 +100,32 @@
     return false; // No save found or error
   }
 
+  function resetGameState() {
+    seeds = 1;
+    money = 0;
+    pots = [{
+      id: 0,
+      planted: false,
+      growth: 0,
+      plantTime: null
+    }];
+    hasAutoHarvester = false;
+    hasAutoPlanter = false;
+    seedBuyerCount = 0;
+    individualSeedsPurchased = 0;
+    forceMinimal = false;
+    testFreeMode = false;
+    testFastGrowth = false;
+    seedBuyerRemainder = 0.0;
+    lastSeedBuyerUpdate = Date.now();
+    currentSeedBuyerRate = 0;
+    renderPots();
+    updatePotCompactness();
+    update();
+    updateControls();
+    saveGame();
+  }
+
   var hasAutoHarvester = false;
   var hasAutoPlanter = false;
   var seedBuyerCount = 0;
@@ -694,8 +720,7 @@
     document.getElementById('test-reset-game').addEventListener('click', function(e) {
       e.stopPropagation();
       if (confirm('Reset all game progress?')) {
-        localStorage.removeItem('gardenGameState');
-        location.reload();
+        resetGameState();
       }
     });
 
