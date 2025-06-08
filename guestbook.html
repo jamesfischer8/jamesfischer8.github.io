@@ -23,6 +23,21 @@ layout: default
 </div>
 
 <script>
+const CACHE_KEY = 'guestbook-cache';
+
+function loadCachedEntries() {
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (!cached) return;
+  try {
+    const entries = JSON.parse(cached);
+    const entriesDiv = document.getElementById('entries');
+    entriesDiv.innerHTML = '';
+    entries.forEach(prependEntry);
+  } catch (e) {
+    console.error('Failed to parse guestbook cache', e);
+  }
+}
+
 // Client-side flag for deleting own entries
 // Simple client-side validation and submission
 document.getElementById('guestbook-form').addEventListener('submit', async (e) => {
@@ -54,6 +69,13 @@ document.getElementById('guestbook-form').addEventListener('submit', async (e) =
     localStorage.setItem(`guestbook-${pf}`, newEntry.key);
     e.target.reset();
     prependEntry(newEntry);
+    const cached = localStorage.getItem(CACHE_KEY);
+    let entries = [];
+    try {
+      entries = cached ? JSON.parse(cached) : [];
+    } catch {}
+    entries.unshift(newEntry);
+    localStorage.setItem(CACHE_KEY, JSON.stringify(entries));
   } catch (error) {
     document.getElementById('error-message').textContent = error.message;
     document.getElementById('error-message').style.display = 'block';
@@ -78,9 +100,10 @@ async function loadEntries() {
     const response = await fetch('/api/guestbook');
     const entries = await response.json();
 
-    entries.forEach(entry => {
-      prependEntry(entry);
-    });
+    const entriesDiv = document.getElementById('entries');
+    entriesDiv.innerHTML = '';
+    entries.forEach(prependEntry);
+    localStorage.setItem(CACHE_KEY, JSON.stringify(entries));
   } catch (error) {
     console.error('Failed to load entries:', error);
   }
@@ -120,6 +143,7 @@ function escapeHtml(unsafe) {
 }
 
 // Load entries on page load
+loadCachedEntries();
 loadEntries();
 
 // Handle delete button clicks
@@ -141,6 +165,13 @@ document.getElementById('entries').addEventListener('click', async (e) => {
     if (!response.ok) throw new Error('Delete failed');
     entryDiv.remove();
     localStorage.removeItem(`guestbook-${pf}`);
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      try {
+        const entries = JSON.parse(cached).filter(e => e.timestamp !== JSON.parse(pf)[0]);
+        localStorage.setItem(CACHE_KEY, JSON.stringify(entries));
+      } catch {}
+    }
   } catch (err) {
     console.error(err);
     alert('Could not delete entry.');
