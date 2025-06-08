@@ -115,7 +115,12 @@ a, a:visited {
     margin: 6px 0;
   }
 
+
   button:hover {
     cursor: pointer;
+  }
+
+  .entry.deleted {
+    opacity: 0.5;
   }
 }
