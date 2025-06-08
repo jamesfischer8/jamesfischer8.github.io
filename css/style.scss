@@ -114,4 +114,8 @@ a, a:visited {
     color: #666;
     margin: 6px 0;
   }
+
+  button.delete:hover {
+    cursor: pointer;
+  }
 }
