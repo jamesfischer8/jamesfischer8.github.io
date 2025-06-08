@@ -521,9 +521,6 @@
         nextAutoPlantTime = Date.now() + Math.max(minDelay, baseDelay + jitter);
 
         update();
-      } else {
-        // Try again soon if nothing was planted
-        nextAutoPlantTime = Date.now() + 500;
       }
     }
   }, 50);
