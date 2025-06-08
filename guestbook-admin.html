@@ -16,7 +16,12 @@ async function loadEntries() {
   const url = `/api/guestbook-admin?secret=${encodeURIComponent(adminSecret)}`;
   const res = await fetch(url);
   if (!res.ok) {
-    document.getElementById('entries').textContent = 'Failed to load entries.';
+    if (res.status === 403) {
+      localStorage.removeItem('gbAdminSecret');
+      document.getElementById('entries').textContent = 'Unauthorized.';
+    } else {
+      document.getElementById('entries').textContent = 'Failed to load entries.';
+    }
     return;
   }
   const data = await res.json();
@@ -57,7 +62,10 @@ document.getElementById('entries').addEventListener('click', async e => {
     body: JSON.stringify({ key, secret: adminSecret })
   });
   if (res.ok) div.remove();
-  else alert('Failed to delete');
+  else if (res.status === 403) {
+    localStorage.removeItem('gbAdminSecret');
+    alert('Unauthorized: Invalid admin secret. Please refresh the page to re-enter.');
+  } else alert('Failed to delete');
 });
 
 loadEntries();
