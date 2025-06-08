@@ -25,6 +25,8 @@ layout: default
 <script>
 // Client-side flag for deleting own entries
 // Simple client-side validation and submission
+const PENDING_TTL_MS = 2 * 60 * 1000; // 2 minutes
+
 document.getElementById('guestbook-form').addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -52,6 +54,7 @@ document.getElementById('guestbook-form').addEventListener('submit', async (e) =
     // Record ownership: map fingerprint to deletion key
     const pf = JSON.stringify([newEntry.timestamp, newEntry.name, newEntry.remarks]);
     localStorage.setItem(`guestbook-${pf}`, newEntry.key);
+    savePendingEntry(newEntry);
     e.target.reset();
     prependEntry(newEntry);
   } catch (error) {
@@ -81,6 +84,7 @@ async function loadEntries() {
     entries.forEach(entry => {
       prependEntry(entry);
     });
+    processPendingEntries(entries);
   } catch (error) {
     console.error('Failed to load entries:', error);
   }
@@ -107,6 +111,37 @@ function entryHtml(entry) {
   ${canDelete ? `<button class="delete">Delete</button>` : ''}
 </div>
 `;
+}
+
+function savePendingEntry(entry) {
+  localStorage.setItem(
+    `guestbook-pending-${entry.key}`,
+    JSON.stringify({ entry, added: Date.now() })
+  );
+}
+
+function processPendingEntries(serverEntries) {
+  const serverFingerprints = new Set(
+    serverEntries.map(e => JSON.stringify([e.timestamp, e.name, e.remarks]))
+  );
+  const now = Date.now();
+  for (let i = 0; i < localStorage.length; i++) {
+    const storageKey = localStorage.key(i);
+    if (!storageKey || !storageKey.startsWith('guestbook-pending-')) continue;
+    try {
+      const { entry, added } = JSON.parse(localStorage.getItem(storageKey));
+      const pf = JSON.stringify([entry.timestamp, entry.name, entry.remarks]);
+      if (serverFingerprints.has(pf)) {
+        localStorage.removeItem(storageKey);
+      } else if (now - added < PENDING_TTL_MS) {
+        prependEntry(entry);
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+    } catch (e) {
+      localStorage.removeItem(storageKey);
+    }
+  }
 }
 
 // Helper function to escape HTML
@@ -141,6 +176,7 @@ document.getElementById('entries').addEventListener('click', async (e) => {
     if (!response.ok) throw new Error('Delete failed');
     entryDiv.remove();
     localStorage.removeItem(`guestbook-${pf}`);
+    localStorage.removeItem(`guestbook-pending-${key}`);
   } catch (err) {
     console.error(err);
     alert('Could not delete entry.');
