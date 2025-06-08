@@ -109,6 +109,7 @@
   var forceMinimal = false; // Manual toggle override
   var testFreeMode = false; // Test mode for free purchases
   var testFastGrowth = false; // Test mode for fast growth
+  var nextAutoPlantTime = Date.now(); // Time until the auto-planter plants again
   var individualSeedsPurchased = 0; // Track individual seed purchases
 
   // UI state tracking
@@ -497,26 +498,27 @@
     updateControls();
   }, 100);
 
-  // Auto-planter runs less frequently to avoid consuming seeds too aggressively
+  // Auto-planter staggers planting so harvests finish at varied times
   setInterval(function() {
-    if (hasAutoPlanter) {
-      pots.some(function(pot) {
-        // Check if pot is currently being harvested
+    if (hasAutoPlanter && Date.now() >= nextAutoPlantTime) {
+      var eligible = pots.filter(function(pot) {
         var potElement = document.querySelector(`[data-pot="${pot.id}"]`);
         var isHarvesting = potElement && potElement.closest('.pot').classList.contains('harvesting');
-
-        // Auto-plant if empty, we have seeds, and pot isn't mid-harvest animation
-        if (!pot.planted && seeds > 0 && !isHarvesting) {
-          seeds--;
-          pot.growth = 0;
-          pot.planted = true;
-          pot.plantTime = Date.now();
-          return true;
-        } else {
-          return false;
-        }
+        return !pot.planted && !isHarvesting;
       });
-      update();
+
+      if (eligible.length > 0 && seeds > 0) {
+        var pot = eligible[Math.floor(Math.random() * eligible.length)];
+        seeds--;
+        pot.growth = 0;
+        pot.planted = true;
+        pot.plantTime = Date.now();
+        nextAutoPlantTime = Date.now() + 500 + Math.random() * 1000;
+        update();
+      } else {
+        // Try again soon if nothing was planted
+        nextAutoPlantTime = Date.now() + 500;
+      }
     }
   }, 50);
 
