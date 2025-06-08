@@ -1,0 +1,72 @@
+---
+layout: default
+---
+<div class="guestbook">
+  <h1>Guestbook Admin</h1>
+  <div class="entries" id="entries"></div>
+</div>
+<script>
+let adminSecret = localStorage.getItem('gbAdminSecret');
+if (!adminSecret) {
+  adminSecret = prompt('Enter admin secret');
+  if (adminSecret) localStorage.setItem('gbAdminSecret', adminSecret);
+}
+
+async function loadEntries() {
+  const url = `/api/guestbook-admin?secret=${encodeURIComponent(adminSecret)}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    if (res.status === 403) {
+      localStorage.removeItem('gbAdminSecret');
+      document.getElementById('entries').textContent = 'Unauthorized.';
+    } else {
+      document.getElementById('entries').textContent = 'Failed to load entries.';
+    }
+    return;
+  }
+  const data = await res.json();
+  const entriesDiv = document.getElementById('entries');
+  entriesDiv.innerHTML = '';
+  data.forEach(e => { entriesDiv.innerHTML = entryHtml(e) + "\n" + entriesDiv.innerHTML; });
+}
+
+function entryHtml(e) {
+  const ts = new Date(e.timestamp);
+  return `<div class="entry" data-key="${e.key}">
+    <div class="name-timestamp">
+      <div class="name">${escapeHtml(e.name)}</div>
+      <div class="timestamp">${ts.toLocaleDateString()}</div>
+    </div>
+    <p class="remarks">${escapeHtml(e.remarks)}</p>
+    <button class="delete">Delete</button>
+  </div>`;
+}
+
+function escapeHtml(u) {
+  return u
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+document.getElementById('entries').addEventListener('click', async e => {
+  if (!e.target.classList.contains('delete')) return;
+  const div = e.target.closest('.entry');
+  const key = div.getAttribute('data-key');
+  if (!confirm('Delete this entry?')) return;
+  const res = await fetch('/api/guestbook-admin', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key, secret: adminSecret })
+  });
+  if (res.ok) div.remove();
+  else if (res.status === 403) {
+    localStorage.removeItem('gbAdminSecret');
+    alert('Unauthorized: Invalid admin secret. Please refresh the page to re-enter.');
+  } else alert('Failed to delete');
+});
+
+loadEntries();
+</script>
