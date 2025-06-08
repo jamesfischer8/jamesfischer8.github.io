@@ -15,6 +15,7 @@ layout: default
     </div>
     <button type="submit">Sign Guestbook</button>
     <p class="error" id="error-message"></p>
+    <p class="info" id="info-message"></p>
   </form>
 
   <div class="entries" id="entries">
@@ -49,11 +50,18 @@ document.getElementById('guestbook-form').addEventListener('submit', async (e) =
 
     // Clear form, store deletion flag, and add new entry using server-provided data
     const newEntry = await response.json();
-    // Record ownership: map fingerprint to deletion key
     const pf = JSON.stringify([newEntry.timestamp, newEntry.name, newEntry.remarks]);
     localStorage.setItem(`guestbook-${pf}`, newEntry.key);
     e.target.reset();
-    prependEntry(newEntry);
+    const infoEl = document.getElementById('info-message');
+    if (newEntry.needsApproval) {
+      infoEl.textContent = 'Your entry will appear once approved.';
+      infoEl.style.display = 'block';
+    } else {
+      infoEl.style.display = 'none';
+      infoEl.textContent = '';
+      prependEntry(newEntry);
+    }
   } catch (error) {
     document.getElementById('error-message').textContent = error.message;
     document.getElementById('error-message').style.display = 'block';

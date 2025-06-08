@@ -12,6 +12,19 @@ async function hasPriorPostToday(ip, env, date) {
   return false;
 }
 
+async function hasPendingApproval(env) {
+  const list = await env.GUESTBOOK.list();
+  for (const { name } of list.keys) {
+    const raw = await env.GUESTBOOK.get(name);
+    if (!raw) continue;
+    const entry = JSON.parse(raw);
+    if (entry.needsApproval && !entry.deleted) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export async function onRequestGet({ request, env }) {
   try {
     // Every request should have an IP address
@@ -102,9 +115,8 @@ export async function onRequestPost({ request, env }) {
       return new Response('Missing IP address', { status: 400 });
     }
 
-    const needsApproval = ip
-      ? await hasPriorPostToday(ip, env, date)
-      : false;
+    const backlog = await hasPendingApproval(env);
+    const needsApproval = backlog || (ip ? await hasPriorPostToday(ip, env, date) : false);
 
     // Store the entry in KV
     const newEntry = {
@@ -122,6 +134,7 @@ export async function onRequestPost({ request, env }) {
       name: newEntry.name,
       remarks: newEntry.remarks,
       timestamp: newEntry.timestamp,
+      needsApproval: newEntry.needsApproval,
     };
     return new Response(
       JSON.stringify(publicEntry),
