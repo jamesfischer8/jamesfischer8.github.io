@@ -1,27 +1,35 @@
 async function hasPriorPostToday(ip, env, date) {
   const today = date.toISOString().slice(0, 10);
-  const list = await env.GUESTBOOK.list();
-  for (const { name } of list.keys) {
-    const raw = await env.GUESTBOOK.get(name);
-    if (!raw) continue;
-    const entry = JSON.parse(raw);
-    if (entry.ip === ip && entry.timestamp?.slice(0, 10) === today) {
-      return true;
+  let cursor;
+  do {
+    const list = await env.GUESTBOOK.list({ prefix: 'entry-', cursor });
+    for (const { name } of list.keys) {
+      const raw = await env.GUESTBOOK.get(name);
+      if (!raw) continue;
+      const entry = JSON.parse(raw);
+      if (entry.ip === ip && entry.timestamp?.slice(0, 10) === today) {
+        return true;
+      }
     }
-  }
+    cursor = list.cursor;
+  } while (cursor);
   return false;
 }
 
 async function hasPendingApproval(env) {
-  const list = await env.GUESTBOOK.list();
-  for (const { name } of list.keys) {
-    const raw = await env.GUESTBOOK.get(name);
-    if (!raw) continue;
-    const entry = JSON.parse(raw);
-    if (entry.needsApproval && !entry.deleted) {
-      return true;
+  let cursor;
+  do {
+    const list = await env.GUESTBOOK.list({ prefix: 'entry-', cursor });
+    for (const { name } of list.keys) {
+      const raw = await env.GUESTBOOK.get(name);
+      if (!raw) continue;
+      const entry = JSON.parse(raw);
+      if (entry.needsApproval && !entry.deleted) {
+        return true;
+      }
     }
-  }
+    cursor = list.cursor;
+  } while (cursor);
   return false;
 }
 
