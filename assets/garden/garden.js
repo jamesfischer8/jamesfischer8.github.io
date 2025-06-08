@@ -498,7 +498,7 @@
     updateControls();
   }, 100);
 
-  // Auto-planter staggers planting so harvests finish at varied times
+  // Auto-planter staggers planting based on pot count
   setInterval(function() {
     if (hasAutoPlanter && Date.now() >= nextAutoPlantTime) {
       var eligible = pots.filter(function(pot) {
@@ -513,7 +513,13 @@
         pot.growth = 0;
         pot.planted = true;
         pot.plantTime = Date.now();
-        nextAutoPlantTime = Date.now() + 500 + Math.random() * 1000;
+
+        var delayFactor = CONFIG.GROWTH_DURATION / 10;
+        var baseDelay = delayFactor / Math.max(1, pots.length);
+        var jitter = Math.random() * baseDelay;
+        var minDelay = 50;
+        nextAutoPlantTime = Date.now() + Math.max(minDelay, baseDelay + jitter);
+
         update();
       } else {
         // Try again soon if nothing was planted
