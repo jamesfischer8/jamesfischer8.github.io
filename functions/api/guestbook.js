@@ -11,9 +11,10 @@ export async function onRequestGet({ request, env }) {
       })
     );
 
-    // Filter out any null entries and remove IP before sending to client
+    // Filter out null entries, soft-deleted entries, remove IP
     const publicEntries = entries
       .filter(Boolean)
+      .filter(entry => !entry.deleted)
       .map(entry => {
         const { name, remarks, timestamp, ip: entryIp } = entry;
         const ipMatch = ip === entryIp;
@@ -45,7 +46,9 @@ export async function onRequestDelete({ request, env }) {
       return new Response('IP mismatch', { status: 403 });
     }
 
-    await env.GUESTBOOK.delete(key);
+    // Soft delete: mark as deleted instead of removing
+    entry.deleted = true;
+    await env.GUESTBOOK.put(key, JSON.stringify(entry));
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' },
     });
