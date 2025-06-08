@@ -12,6 +12,23 @@ async function hasPriorPostToday(ip, env, date) {
   return false;
 }
 
+async function shouldRequireApproval(env, date) {
+  const twelveHoursAgo = new Date(date.getTime() - 12 * 60 * 60 * 1000);
+  const list = await env.GUESTBOOK.list();
+  let recentEntryCount = 0;
+  
+  for (const { name } of list.keys) {
+    const raw = await env.GUESTBOOK.get(name);
+    if (!raw) continue;
+    const entry = JSON.parse(raw);
+    if (entry.timestamp && new Date(entry.timestamp) >= twelveHoursAgo) {
+      recentEntryCount++;
+    }
+  }
+  
+  return recentEntryCount >= 5;
+}
+
 export async function onRequestGet({ request, env }) {
   try {
     // Every request should have an IP address
@@ -103,7 +120,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     const needsApproval = ip
-      ? await hasPriorPostToday(ip, env, date)
+      ? await hasPriorPostToday(ip, env, date) || await shouldRequireApproval(env, date)
       : false;
 
     // Store the entry in KV
