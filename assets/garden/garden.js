@@ -497,28 +497,44 @@
     updateControls();
   }, 100);
 
-  // Auto-planter runs less frequently to avoid consuming seeds too aggressively
+  // Auto-planter with time-based intervals matching growth rate
+  // Plants at rate: growth_duration / pot_count to maintain equilibrium
+  var lastAutoPlantTime = 0;
   setInterval(function() {
-    if (hasAutoPlanter) {
-      pots.some(function(pot) {
-        // Check if pot is currently being harvested
-        var potElement = document.querySelector(`[data-pot="${pot.id}"]`);
-        var isHarvesting = potElement && potElement.closest('.pot').classList.contains('harvesting');
+    if (hasAutoPlanter && seeds > 0 && pots.length > 0) {
+      var now = Date.now();
+      var effectiveGrowthDuration = testFastGrowth ? CONFIG.GROWTH_DURATION / 10 : CONFIG.GROWTH_DURATION;
+      
+      // Calculate planting interval: growth duration divided by pot count
+      var plantingInterval = effectiveGrowthDuration / pots.length;
+      
+      // Only plant if enough time has passed since last planting
+      if (now - lastAutoPlantTime >= plantingInterval) {
+        var planted = pots.some(function(pot) {
+          // Check if pot is currently being harvested
+          var potElement = document.querySelector(`[data-pot="${pot.id}"]`);
+          var isHarvesting = potElement && potElement.closest('.pot').classList.contains('harvesting');
 
-        // Auto-plant if empty, we have seeds, and pot isn't mid-harvest animation
-        if (!pot.planted && seeds > 0 && !isHarvesting) {
-          seeds--;
-          pot.growth = 0;
-          pot.planted = true;
-          pot.plantTime = Date.now();
-          return true;
-        } else {
-          return false;
+          // Auto-plant if empty, we have seeds, and pot isn't mid-harvest animation
+          if (!pot.planted && seeds > 0 && !isHarvesting) {
+            seeds--;
+            pot.growth = 0;
+            pot.planted = true;
+            pot.plantTime = Date.now();
+            return true;
+          } else {
+            return false;
+          }
+        });
+        
+        // Update last plant time only if we actually planted something
+        if (planted) {
+          lastAutoPlantTime = now;
+          update();
         }
-      });
-      update();
+      }
     }
-  }, 50);
+  }, 16);
 
   // Auto-seeders run smoothly, accumulating fractional progress
   setInterval(function() {
