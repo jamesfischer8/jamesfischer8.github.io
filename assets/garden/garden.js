@@ -498,7 +498,7 @@
     updateControls();
   }, 100);
 
-  // Auto-planter staggers planting based on pot count
+  // Auto-planter staggers planting with random cadence based on pot count
   setInterval(function() {
     if (hasAutoPlanter && Date.now() >= nextAutoPlantTime) {
       var eligible = pots.filter(function(pot) {
@@ -514,9 +514,9 @@
         pot.planted = true;
         pot.plantTime = Date.now();
 
-        var delayFactor = CONFIG.GROWTH_DURATION / 10;
-        var baseDelay = delayFactor / Math.max(1, pots.length);
-        var jitter = Math.random() * baseDelay;
+        var baseDelay = CONFIG.GROWTH_DURATION / Math.max(1, pots.length);
+        baseDelay = Math.min(baseDelay, 1000); // Cap extremely long waits
+        var jitter = (Math.random() - 0.5) * baseDelay * 0.4; // +/-20%
         var minDelay = 50;
         nextAutoPlantTime = Date.now() + Math.max(minDelay, baseDelay + jitter);
 
