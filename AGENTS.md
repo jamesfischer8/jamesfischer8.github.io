@@ -14,3 +14,8 @@ lines:
 - Switch to a new git branch before working on even moderately complex tasks,
   and commit in logical increments as you progress.
 - Don't merge branches into master unless specifically directed.
+
+## Code Modification Guidelines
+
+- When making changes to code, update comments to reflect those changes.
+- Ensure comments accurately describe the current behavior after edits.
