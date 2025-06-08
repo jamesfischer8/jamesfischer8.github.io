@@ -25,7 +25,7 @@ export async function onRequestGet({ request, env }) {
   }
 }
 
-// Allow guests to delete their own recent entries if IP matches
+// Allow guests to delete their own entries if IP matches
 export async function onRequestDelete({ request, env }) {
   try {
     const { key } = await request.json();
