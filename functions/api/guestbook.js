@@ -14,7 +14,11 @@ async function hasPriorPostToday(ip, env, date) {
 
 export async function onRequestGet({ request, env }) {
   try {
-    const ip = request.headers.get('CF-Connecting-IP') || null;
+    // Every request should have an IP address
+    const ip = request.headers.get('CF-Connecting-IP');
+    if (!ip) {
+      return new Response('Missing IP address', { status: 400 });
+    }
     const listResponse = await env.GUESTBOOK.list();
 
     // Fetch all entries in parallel
@@ -55,7 +59,11 @@ export async function onRequestDelete({ request, env }) {
     const entry = JSON.parse(raw);
 
 
-    const ip = request.headers.get('CF-Connecting-IP') || null;
+    // Requests must supply the same IP used when posting
+    const ip = request.headers.get('CF-Connecting-IP');
+    if (!ip) {
+      return new Response('Missing IP address', { status: 400 });
+    }
     if (ip !== entry.ip) {
       return new Response('IP mismatch', { status: 403 });
     }
@@ -88,8 +96,11 @@ export async function onRequestPost({ request, env }) {
     // Generate a unique key for the entry
     const key = `entry-${date.getTime()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Get request ip
-    const ip = request.headers.get('CF-Connecting-IP') || null;
+    // Get request IP and fail fast if missing
+    const ip = request.headers.get('CF-Connecting-IP');
+    if (!ip) {
+      return new Response('Missing IP address', { status: 400 });
+    }
 
     const needsApproval = ip
       ? await hasPriorPostToday(ip, env, date)
