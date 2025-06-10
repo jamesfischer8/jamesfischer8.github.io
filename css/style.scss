@@ -97,6 +97,16 @@ a, a:visited {
     resize: none;
   }
 
+  .error {
+    color: red;
+    display: none;
+  }
+
+  .info {
+    color: #333;
+    display: none;
+  }
+
   .entry {
     margin: 24px 0;
   }

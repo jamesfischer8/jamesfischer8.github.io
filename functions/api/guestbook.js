@@ -1,14 +1,35 @@
 async function hasPriorPostToday(ip, env, date) {
   const today = date.toISOString().slice(0, 10);
-  const list = await env.GUESTBOOK.list();
-  for (const { name } of list.keys) {
-    const raw = await env.GUESTBOOK.get(name);
-    if (!raw) continue;
-    const entry = JSON.parse(raw);
-    if (entry.ip === ip && entry.timestamp?.slice(0, 10) === today) {
-      return true;
+  let cursor;
+  do {
+    const list = await env.GUESTBOOK.list({ prefix: 'entry-', cursor });
+    for (const { name } of list.keys) {
+      const raw = await env.GUESTBOOK.get(name);
+      if (!raw) continue;
+      const entry = JSON.parse(raw);
+      if (entry.ip === ip && entry.timestamp?.slice(0, 10) === today) {
+        return true;
+      }
     }
-  }
+    cursor = list.cursor;
+  } while (cursor);
+  return false;
+}
+
+async function hasPendingApproval(env) {
+  let cursor;
+  do {
+    const list = await env.GUESTBOOK.list({ prefix: 'entry-', cursor });
+    for (const { name } of list.keys) {
+      const raw = await env.GUESTBOOK.get(name);
+      if (!raw) continue;
+      const entry = JSON.parse(raw);
+      if (entry.needsApproval && !entry.deleted) {
+        return true;
+      }
+    }
+    cursor = list.cursor;
+  } while (cursor);
   return false;
 }
 
@@ -102,9 +123,8 @@ export async function onRequestPost({ request, env }) {
       return new Response('Missing IP address', { status: 400 });
     }
 
-    const needsApproval = ip
-      ? await hasPriorPostToday(ip, env, date)
-      : false;
+    const backlog = await hasPendingApproval(env);
+    const needsApproval = backlog || (ip ? await hasPriorPostToday(ip, env, date) : false);
 
     // Store the entry in KV
     const newEntry = {
@@ -122,6 +142,7 @@ export async function onRequestPost({ request, env }) {
       name: newEntry.name,
       remarks: newEntry.remarks,
       timestamp: newEntry.timestamp,
+      needsApproval: newEntry.needsApproval,
     };
     return new Response(
       JSON.stringify(publicEntry),
