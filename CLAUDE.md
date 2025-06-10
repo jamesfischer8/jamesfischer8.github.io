@@ -1,0 +1,1 @@
+- Prefix branch names with `claude/` (or if you are another AI, your name)
