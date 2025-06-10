@@ -578,6 +578,8 @@
             update();
           }
         }
+        // Cap remainder to avoid huge backlogs if tab was suspended
+        autoPlanterRemainder = Math.min(autoPlanterRemainder, 1);
       }
 
       // Update timer state based on seed availability
