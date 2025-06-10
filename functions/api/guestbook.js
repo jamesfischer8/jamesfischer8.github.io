@@ -28,6 +28,19 @@ async function hasPendingApproval(env) {
   return someEntry(env, entry => entry.needsApproval && !entry.deleted);
 }
 
+// Scan entries for at least five posts within the last `hours`
+async function hasHighActivity(env, hours, now) {
+  const cutoff = now.getTime() - hours * 60 * 60 * 1000;
+  let count = 0;
+  return someEntry(env, entry => {
+    if (entry.deleted) return false;
+    if (new Date(entry.timestamp).getTime() >= cutoff) {
+      if (++count >= 5) return true;
+    }
+    return false;
+  });
+}
+
 export async function onRequestGet({ request, env }) {
   try {
     // Every request should have an IP address
@@ -121,7 +134,11 @@ export async function onRequestPost({ request, env }) {
     }
 
     const backlog = await hasPendingApproval(env);
-    const needsApproval = backlog || (ip ? await hasPriorPostToday(ip, env, date) : false);
+    const highActivity = await hasHighActivity(env, 12, date);
+    const needsApproval =
+      backlog ||
+      highActivity ||
+      (ip ? await hasPriorPostToday(ip, env, date) : false);
 
     // Store the entry in KV; remarks may be blank
     const newEntry = {
