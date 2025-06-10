@@ -119,6 +119,9 @@
     seedBuyerRemainder = 0.0;
     lastSeedBuyerUpdate = Date.now();
     currentSeedBuyerRate = 0;
+    // Force UI updates for money and pot count
+    uiState.money = -1;
+    uiState.potCount = -1;
     renderPots();
     updatePotCompactness();
     update();
