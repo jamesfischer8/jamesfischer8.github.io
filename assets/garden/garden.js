@@ -125,9 +125,6 @@
     currentSeedBuyerRate = 0;
     autoPlanterRemainder = 0.0;
     lastAutoPlanterUpdate = -1;
-    // Force UI updates for money and pot count
-    uiState.money = -1;
-    uiState.potCount = -1;
     renderPots();
     updatePotCompactness();
     update();
