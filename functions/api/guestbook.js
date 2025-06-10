@@ -135,10 +135,7 @@ export async function onRequestPost({ request, env }) {
 
     const backlog = await hasPendingApproval(env);
     const highActivity = await hasHighActivity(env, 12, date);
-    const needsApproval =
-      backlog ||
-      highActivity ||
-      (ip ? await hasPriorPostToday(ip, env, date) : false);
+    const priorPost = await hasPriorPostToday(ip, env, date);
 
     // Store the entry in KV; remarks may be blank
     const newEntry = {
@@ -146,7 +143,7 @@ export async function onRequestPost({ request, env }) {
       remarks,
       timestamp: date.toISOString(),
       ip,
-      needsApproval,
+      needsApproval: backlog || highActivity || priorPost,
     };
     await env.GUESTBOOK.put(key, JSON.stringify(newEntry));
 
