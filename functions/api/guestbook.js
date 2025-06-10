@@ -98,14 +98,16 @@ export async function onRequestDelete({ request, env }) {
 export async function onRequestPost({ request, env }) {
   try {
     const entry = await request.json();
+    // Treat remarks as optional text
+    const remarks = entry.remarks ?? '';
     const date = new Date();
 
-    // Basic validation
+    // Basic validation: name required, remarks optional
     if (!entry.name) {
       return new Response('Missing required fields', { status: 400 });
     }
 
-    if (entry.name.length > 50 || entry.remarks.length > 200) {
+    if (entry.name.length > 50 || remarks.length > 200) {
       return new Response('Content too long', { status: 400 });
     }
 
@@ -121,10 +123,10 @@ export async function onRequestPost({ request, env }) {
     const backlog = await hasPendingApproval(env);
     const needsApproval = backlog || (ip ? await hasPriorPostToday(ip, env, date) : false);
 
-    // Store the entry in KV
+    // Store the entry in KV; remarks may be blank
     const newEntry = {
       name: entry.name,
-      remarks: entry.remarks,
+      remarks,
       timestamp: date.toISOString(),
       ip,
       needsApproval,
