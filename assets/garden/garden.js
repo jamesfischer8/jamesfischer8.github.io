@@ -8,6 +8,10 @@
   var potCountEl = document.getElementById('pot-count');
   var seedBuyerCountEl = document.getElementById('seed-buyer-count');
   var seedsPerSecLineEl = document.getElementById('seeds-per-sec-line');
+  var moneyRateEl = document.getElementById('money-rate');
+  var seedRateEl = document.getElementById('seed-rate');
+  var moneyRateLineEl = document.getElementById('money-rate-line');
+  var seedRateLineEl = document.getElementById('seed-rate-line');
   var buySeedBtn = document.getElementById('buy-seed');
   var buyPotBtn = document.getElementById('buy-pot');
   var buyAutoHarvesterBtn = document.getElementById('buy-auto-harvester');
@@ -28,6 +32,9 @@
       plantTime: null
     }
   ];
+
+  var STATS_WINDOW = 10000; // milliseconds
+  var statsHistory = [];
 
   // Check for test mode (for palette visibility only)
   var urlParams = new URLSearchParams(window.location.search);
@@ -153,6 +160,8 @@
     potCount: -1,
     seedBuyerCount: -1,
     currentSeedBuyerRate: -1,
+    moneyRate: -1,
+    seedRate: -1,
     seedBtnText: '',
     potBtnText: '',
     autoHarvesterBtnText: '',
@@ -380,6 +389,30 @@
     }
   }
 
+  function updateMoneyRate(value) {
+    if (uiState.moneyRate !== value) {
+      uiState.moneyRate = value;
+      moneyRateEl.textContent = value.toFixed(1);
+      if (value === 0) {
+        moneyRateLineEl.classList.add('hidden');
+      } else {
+        moneyRateLineEl.classList.remove('hidden');
+      }
+    }
+  }
+
+  function updateSeedRate(value) {
+    if (uiState.seedRate !== value) {
+      uiState.seedRate = value;
+      seedRateEl.textContent = value.toFixed(1);
+      if (value === 0) {
+        seedRateLineEl.classList.add('hidden');
+      } else {
+        seedRateLineEl.classList.remove('hidden');
+      }
+    }
+  }
+
   function updateButtonState(button, text, disabled, stateKey) {
     var textKey = stateKey + 'Text';
     var disabledKey = stateKey + 'Disabled';
@@ -546,6 +579,26 @@
     });
     update();
   }, 16);
+
+  // Track recent money and seed changes
+  setInterval(function() {
+    var now = Date.now();
+    statsHistory.push({ time: now, money: money, seeds: seeds });
+    while (statsHistory.length > 0 && now - statsHistory[0].time > STATS_WINDOW) {
+      statsHistory.shift();
+    }
+    if (statsHistory.length > 1) {
+      var oldest = statsHistory[0];
+      var dt = (now - oldest.time) / 1000;
+      var moneyRate = (money - oldest.money) / dt;
+      var seedRate = (seeds - oldest.seeds) / dt;
+      updateMoneyRate(moneyRate);
+      updateSeedRate(seedRate);
+    } else {
+      updateMoneyRate(0);
+      updateSeedRate(0);
+    }
+  }, 1000);
 
   // Update button states less frequently to avoid interfering with clicks
   setInterval(function() {
@@ -797,6 +850,7 @@
 
   // Load saved game state
   loadGame();
+  statsHistory.push({ time: Date.now(), money: money, seeds: seeds });
 
   // Initial render
   renderPots();
