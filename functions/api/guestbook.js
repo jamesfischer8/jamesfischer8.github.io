@@ -1,5 +1,5 @@
-async function hasPriorPostToday(ip, env, date) {
-  const today = date.toISOString().slice(0, 10);
+// Iterate through all guestbook entries until the predicate returns true
+async function someEntry(env, predicate) {
   let cursor;
   do {
     const list = await env.GUESTBOOK.list({ prefix: 'entry-', cursor });
@@ -7,7 +7,7 @@ async function hasPriorPostToday(ip, env, date) {
       const raw = await env.GUESTBOOK.get(name);
       if (!raw) continue;
       const entry = JSON.parse(raw);
-      if (entry.ip === ip && entry.timestamp?.slice(0, 10) === today) {
+      if (predicate(entry)) {
         return true;
       }
     }
@@ -16,21 +16,16 @@ async function hasPriorPostToday(ip, env, date) {
   return false;
 }
 
+async function hasPriorPostToday(ip, env, date) {
+  const today = date.toISOString().slice(0, 10);
+  return someEntry(
+    env,
+    entry => entry.ip === ip && entry.timestamp?.slice(0, 10) === today
+  );
+}
+
 async function hasPendingApproval(env) {
-  let cursor;
-  do {
-    const list = await env.GUESTBOOK.list({ prefix: 'entry-', cursor });
-    for (const { name } of list.keys) {
-      const raw = await env.GUESTBOOK.get(name);
-      if (!raw) continue;
-      const entry = JSON.parse(raw);
-      if (entry.needsApproval && !entry.deleted) {
-        return true;
-      }
-    }
-    cursor = list.cursor;
-  } while (cursor);
-  return false;
+  return someEntry(env, entry => entry.needsApproval && !entry.deleted);
 }
 
 export async function onRequestGet({ request, env }) {
