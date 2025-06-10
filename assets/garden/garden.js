@@ -92,6 +92,10 @@
         lastSeedBuyerUpdate = Date.now();
         seedBuyerRemainder = 0.0;
 
+        // Reset auto-planter timer state
+        lastAutoPlanterUpdate = -1;
+        autoPlanterRemainder = 0.0;
+
         return true; // Successfully loaded
       }
     } catch (e) {
@@ -119,6 +123,8 @@
     seedBuyerRemainder = 0.0;
     lastSeedBuyerUpdate = Date.now();
     currentSeedBuyerRate = 0;
+    autoPlanterRemainder = 0.0;
+    lastAutoPlanterUpdate = -1;
     // Force UI updates for money and pot count
     uiState.money = -1;
     uiState.potCount = -1;
@@ -308,6 +314,26 @@
         potElement.classList.remove('harvesting');
       }, 500);
     }
+  }
+
+  function autoPlantSeeds(numSeeds) {
+    var seedsPlanted = 0;
+    for (var i = 0; i < pots.length && seedsPlanted < numSeeds && seeds > 0; i++) {
+      var pot = pots[i];
+      // Check if pot is currently being harvested
+      var potElement = document.querySelector(`[data-pot="${pot.id}"]`);
+      var isHarvesting = potElement && potElement.closest('.pot').classList.contains('harvesting');
+
+      // Auto-plant if empty, we have seeds, and pot isn't mid-harvest animation
+      if (!pot.planted && !isHarvesting) {
+        seeds--;
+        pot.growth = 0;
+        pot.planted = true;
+        pot.plantTime = Date.now();
+        seedsPlanted++;
+      }
+    }
+    return seedsPlanted;
   }
 
   // Format numbers with commas
@@ -526,26 +552,41 @@
     updateControls();
   }, 100);
 
-  // Auto-planter runs less frequently to avoid consuming seeds too aggressively
+  // Auto-planter runs at 20fps, calculating seeds to plant based on speed
+  var autoPlanterRemainder = 0.0;
+  var lastAutoPlanterUpdate = -1;
+
   setInterval(function() {
     if (hasAutoPlanter) {
-      pots.some(function(pot) {
-        // Check if pot is currently being harvested
-        var potElement = document.querySelector(`[data-pot="${pot.id}"]`);
-        var isHarvesting = potElement && potElement.closest('.pot').classList.contains('harvesting');
+      const autoPlanterSpeed = pots.length / (CONFIG.GROWTH_DURATION / 1000); // Plant seeds at rate to keep all pots busy
 
-        // Auto-plant if empty, we have seeds, and pot isn't mid-harvest animation
-        if (!pot.planted && seeds > 0 && !isHarvesting) {
-          seeds--;
-          pot.growth = 0;
-          pot.planted = true;
-          pot.plantTime = Date.now();
-          return true;
-        } else {
-          return false;
+      var now = Date.now();
+
+      // Only do timing calculations if timer is active
+      if (lastAutoPlanterUpdate !== -1) {
+        var deltaTime = (now - lastAutoPlanterUpdate) / 1000; // Convert to seconds
+
+        // Calculate fractional seeds to plant and accumulate remainder
+        autoPlanterRemainder += autoPlanterSpeed * deltaTime;
+
+        // Plant whole seeds from the accumulated remainder
+        var seedsToPlant = Math.floor(autoPlanterRemainder);
+        if (seedsToPlant > 0) {
+          var seedsPlanted = autoPlantSeeds(seedsToPlant);
+          autoPlanterRemainder -= seedsPlanted; // Subtract only seeds actually planted
+          if (seedsPlanted > 0) {
+            update();
+          }
         }
-      });
-      update();
+      }
+
+      // Update timer state based on seed availability
+      if (seeds === 0) {
+        lastAutoPlanterUpdate = -1;
+        autoPlanterRemainder = 0.0;
+      } else {
+        lastAutoPlanterUpdate = now; // Update timer (start if was -1, continue if active)
+      }
     }
   }, 50);
 
@@ -642,6 +683,9 @@
       if (!this.disabled && (testFreeMode || money >= CONFIG.AUTO_PLANTER_COST) && !hasAutoPlanter) {
         if (!testFreeMode) money -= CONFIG.AUTO_PLANTER_COST;
         hasAutoPlanter = true;
+        // Reset auto-planter timer state when first purchased to prevent backfill
+        lastAutoPlanterUpdate = -1;
+        autoPlanterRemainder = 0.0;
         updatePotButtons(); // Update button visibility and animate compactness
         update();
       }
