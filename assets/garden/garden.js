@@ -43,7 +43,6 @@
       hasAutoPlanter: hasAutoPlanter,
       seedBuyerCount: seedBuyerCount,
       individualSeedsPurchased: individualSeedsPurchased,
-      forceMinimal: forceMinimal,
       lastSaved: Date.now()
     };
     localStorage.setItem('gardenGameState', JSON.stringify(gameState));
@@ -62,7 +61,6 @@
         hasAutoPlanter = gameState.hasAutoPlanter || false;
         seedBuyerCount = gameState.seedBuyerCount || 0;
         individualSeedsPurchased = gameState.individualSeedsPurchased || 0;
-        forceMinimal = gameState.forceMinimal || false;
 
         // Restore pots with proper structure and simulate time progression
         if (gameState.pots && gameState.pots.length > 0) {
@@ -117,9 +115,6 @@
     hasAutoPlanter = false;
     seedBuyerCount = 0;
     individualSeedsPurchased = 0;
-    forceMinimal = false;
-    testFreeMode = false;
-    testFastGrowth = false;
     seedBuyerRemainder = 0.0;
     lastSeedBuyerUpdate = Date.now();
     currentSeedBuyerRate = 0;
@@ -138,9 +133,6 @@
   var seedBuyerRemainder = 0.0; // Fractional remainder for seed buying
   var lastSeedBuyerUpdate = Date.now();
   var currentSeedBuyerRate = 0; // Current effective rate after slowdown
-  var forceMinimal = false; // Manual toggle override
-  var testFreeMode = false; // Test mode for free purchases
-  var testFastGrowth = false; // Test mode for fast growth
   var individualSeedsPurchased = 0; // Track individual seed purchases
 
   // UI state tracking
@@ -182,7 +174,7 @@
 
   function updatePotCompactness() {
     var shouldBeCompact = hasAutoPlanter && hasAutoHarvester;
-    var shouldBeMinimal = (shouldBeCompact && pots.length > 18) || forceMinimal;
+    var shouldBeMinimal = shouldBeCompact && pots.length > 18;
 
     // Update container classes
     if (shouldBeMinimal) {
@@ -466,7 +458,7 @@
     updateButtonState(
       buySeedBtn,
       '<span>Buy seed ($' + formatMoney(CONFIG.SEED_COST) + ')</span>',
-      !testFreeMode && money < CONFIG.SEED_COST && !(money === 0 && seeds === 0 && !hasGrowingPlants()),
+      money < CONFIG.SEED_COST && !(money === 0 && seeds === 0 && !hasGrowingPlants()),
       'seedBtn'
     );
 
@@ -477,7 +469,7 @@
       updateButtonState(
         buy10SeedsBtn,
         '<span>Buy 10 seeds ($' + formatMoney(buy10Cost) + ')</span>',
-        !testFreeMode && money < buy10Cost,
+        money < buy10Cost,
         'buy10SeedsBtn'
       );
     } else {
@@ -487,21 +479,21 @@
     updateButtonState(
       buyPotBtn,
       '<span>Buy pot ($' + formatMoney(getCurrentPotCost()) + ')</span>',
-      !testFreeMode && money < getCurrentPotCost(),
+      money < getCurrentPotCost(),
       'potBtn'
     );
 
     updateButtonState(
       buyAutoHarvesterBtn,
       hasAutoHarvester ? '<span>Auto-Harvester (Owned)</span>' : '<span>Auto-Harvester ($' + formatMoney(CONFIG.AUTO_HARVESTER_COST) + ')</span>',
-      hasAutoHarvester || (!testFreeMode && money < CONFIG.AUTO_HARVESTER_COST),
+      hasAutoHarvester || money < CONFIG.AUTO_HARVESTER_COST,
       'autoHarvesterBtn'
     );
 
     updateButtonState(
       buyAutoPlanterBtn,
       hasAutoPlanter ? '<span>Auto-Planter (Owned)</span>' : '<span>Auto-Planter ($' + formatMoney(CONFIG.AUTO_PLANTER_COST) + ')</span>',
-      hasAutoPlanter || (!testFreeMode && money < CONFIG.AUTO_PLANTER_COST),
+      hasAutoPlanter || money < CONFIG.AUTO_PLANTER_COST,
       'autoPlanterBtn'
     );
 
@@ -515,7 +507,7 @@
       updateButtonState(
         buyAutoSeederBtn,
         buttonText,
-        !testFreeMode && money < nextCost,
+        money < nextCost,
         'autoSeederBtn'
       );
     } else {
@@ -527,7 +519,7 @@
   setInterval(function() {
     pots.forEach(function(pot) {
       if (pot.planted && pot.growth < 100) {
-        var effectiveGrowthDuration = testFastGrowth ? CONFIG.GROWTH_DURATION / 10 : CONFIG.GROWTH_DURATION;
+        var effectiveGrowthDuration = CONFIG.GROWTH_DURATION;
         pot.growth = (Date.now() - pot.plantTime) / effectiveGrowthDuration * 100;
         if (pot.growth > 100) pot.growth = 100;
       }
@@ -631,8 +623,8 @@
   function attachDirectListeners() {
     buySeedBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      if (!this.disabled && (testFreeMode || money >= CONFIG.SEED_COST || (money === 0 && seeds === 0 && !hasGrowingPlants()))) {
-        if (!testFreeMode) money -= CONFIG.SEED_COST;
+      if (!this.disabled && (money >= CONFIG.SEED_COST || (money === 0 && seeds === 0 && !hasGrowingPlants()))) {
+        money -= CONFIG.SEED_COST;
         seeds++;
         individualSeedsPurchased++; // Track individual seed purchases
         update();
@@ -642,8 +634,8 @@
     buy10SeedsBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       var buy10Cost = CONFIG.SEED_COST * 10;
-      if (!this.disabled && (testFreeMode || money >= buy10Cost)) {
-        if (!testFreeMode) money -= buy10Cost;
+      if (!this.disabled && money >= buy10Cost) {
+        money -= buy10Cost;
         seeds += 10;
         update();
       }
@@ -652,8 +644,8 @@
     buyPotBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       var currentPotCost = getCurrentPotCost();
-      if (!this.disabled && (testFreeMode || money >= currentPotCost)) {
-        if (!testFreeMode) money -= currentPotCost;
+      if (!this.disabled && money >= currentPotCost) {
+        money -= currentPotCost;
         var newPot = {
           id: pots.length,
           planted: false,
@@ -669,8 +661,8 @@
 
     buyAutoHarvesterBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      if (!this.disabled && (testFreeMode || money >= CONFIG.AUTO_HARVESTER_COST) && !hasAutoHarvester) {
-        if (!testFreeMode) money -= CONFIG.AUTO_HARVESTER_COST;
+      if (!this.disabled && money >= CONFIG.AUTO_HARVESTER_COST && !hasAutoHarvester) {
+        money -= CONFIG.AUTO_HARVESTER_COST;
         hasAutoHarvester = true;
         updatePotButtons(); // Update button visibility and animate compactness
         update();
@@ -679,8 +671,8 @@
 
     buyAutoPlanterBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      if (!this.disabled && (testFreeMode || money >= CONFIG.AUTO_PLANTER_COST) && !hasAutoPlanter) {
-        if (!testFreeMode) money -= CONFIG.AUTO_PLANTER_COST;
+      if (!this.disabled && money >= CONFIG.AUTO_PLANTER_COST && !hasAutoPlanter) {
+        money -= CONFIG.AUTO_PLANTER_COST;
         hasAutoPlanter = true;
         // Reset auto-planter timer state when first purchased to prevent backfill
         lastAutoPlanterUpdate = -1;
@@ -693,8 +685,8 @@
     buyAutoSeederBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       var nextCost = getNextSeedBuyerCost();
-      if (!this.disabled && (testFreeMode || money >= nextCost)) {
-        if (!testFreeMode) money -= nextCost;
+      if (!this.disabled && money >= nextCost) {
+        money -= nextCost;
         seedBuyerCount++;
         // Reset timer and remainder when first seed buyer is purchased to prevent backfill
         if (seedBuyerCount === 1) {
@@ -706,12 +698,6 @@
     });
 
     // Test palette event listeners
-    document.getElementById('test-free-mode').addEventListener('click', function(e) {
-      e.stopPropagation();
-      testFreeMode = !testFreeMode;
-      this.textContent = testFreeMode ? 'Disable Free Mode' : 'Toggle Free Mode';
-      updateControls();
-    });
 
     document.getElementById('test-add-money').addEventListener('click', function(e) {
       e.stopPropagation();
@@ -725,18 +711,7 @@
       update();
     });
 
-    document.getElementById('test-speed-growth').addEventListener('click', function(e) {
-      e.stopPropagation();
-      testFastGrowth = !testFastGrowth;
-      this.textContent = testFastGrowth ? 'Disable Fast Growth' : 'Toggle Fast Growth';
-    });
 
-    document.getElementById('test-toggle-minimal').addEventListener('click', function(e) {
-      e.stopPropagation();
-      forceMinimal = !forceMinimal;
-      updatePotCompactness();
-      this.textContent = forceMinimal ? 'Disable Minimal' : 'Toggle Minimal';
-    });
 
     document.getElementById('test-add-pots').addEventListener('click', function(e) {
       e.stopPropagation();
