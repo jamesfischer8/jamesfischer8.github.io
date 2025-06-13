@@ -51,6 +51,10 @@ a, a:visited {
   margin: 72px 16px 16px;
 }
 
+.main-column > *:last-child {
+  margin-bottom: 72px;
+}
+
 .title {
   margin: 24px 0 8px;
 }
